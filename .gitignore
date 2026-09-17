@@ -1,0 +1,13 @@
+# Dependencias y archivos generados
+node_modules
+dist
+dist-web
+
+# El archivo para abrir con doble clic se genera con: npm run build
+Produccion de Cortos.html
+
+# Lanzador viejo que ya no sirve (macOS 26)
+lanzador-viejo-no-funciona.app
+
+# Cosas de macOS
+.DS_Store
