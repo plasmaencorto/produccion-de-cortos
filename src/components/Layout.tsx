@@ -24,7 +24,10 @@ export default function Layout() {
   const setActivo = useStore(s => s.setActivo)
   const soloLectura = useStore(s => s.soloLectura)
   const setSoloLectura = useStore(s => s.setSoloLectura)
-  const [abierto, setAbierto] = useState(true) // barra lateral expandida o colapsada
+  // En celular el menú arranca recogido, para que quepa el contenido;
+  // en computadora arranca abierto
+  const enCelular = () => typeof window !== 'undefined' && window.innerWidth < 768
+  const [abierto, setAbierto] = useState(() => !enCelular())
 
   // Mantiene sincronizado el proyecto activo con la URL
   useEffect(() => {
@@ -64,6 +67,8 @@ export default function Layout() {
               to={s.ruta === '' ? `/p/${proyecto.id}` : `/p/${proyecto.id}/${s.ruta}`}
               end={s.ruta === ''}
               title={s.nombre}
+              // en celular, al elegir sección el menú se recoge solo
+              onClick={() => enCelular() && setAbierto(false)}
               className={({ isActive }) =>
                 `flex items-center gap-2.5 rounded px-2.5 py-2 text-sm ${
                   isActive ? 'bg-amber-500/15 text-amber-300 font-semibold' : 'text-zinc-300 hover:bg-zinc-800'
