@@ -21,6 +21,8 @@ export default function Proyectos() {
   const importarProyecto = useStore(s => s.importarProyecto)
   const [nombre, setNombre] = useState('')
   const nav = useNavigate()
+  // ¿se está usando desde internet, o es el archivo abierto con doble clic?
+  const enInternet = location.protocol !== 'file:'
 
   const crear = () => {
     const n = nombre.trim()
@@ -69,6 +71,20 @@ export default function Proyectos() {
           <input type="file" accept=".json" className="hidden" onChange={e => importar(e.target.files)} />
         </label>
       </div>
+
+      {/* Cuando la app se usa por internet conviene aclarar dónde quedan los datos,
+          porque cada quien los guarda en su propio navegador */}
+      {enInternet && (
+        <div className="max-w-2xl mx-auto mb-8 bg-amber-500/10 border border-amber-700/60 rounded-xl px-4 py-3 text-sm">
+          <p className="text-amber-200 font-semibold mb-1">📍 Cómo se guardan tus proyectos</p>
+          <p className="text-zinc-300">
+            Todo se guarda <b>en este navegador y en este dispositivo</b> — nadie más ve tus proyectos, ni siquiera
+            nosotros. Por eso: si vas a cambiar de computadora o de celular, usa el botón{' '}
+            <b>⬇ Respaldo</b> de tu proyecto y luego <b>⬆ Importar respaldo</b> en el otro equipo. Haz respaldos de vez
+            en cuando, como cuando guardas un archivo.
+          </p>
+        </div>
+      )}
 
       {proyectos.length === 0 && (
         <p className="text-center text-zinc-500">Aún no tienes proyectos. ¡Crea el primero arriba! 🍿</p>
