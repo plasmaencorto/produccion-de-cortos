@@ -83,19 +83,29 @@ export function normalizarProyecto(p: Partial<Proyecto>): Proyecto {
   }
 }
 
+// Las comidas del día, en el orden del machote profesional
+export const COMIDAS = ['Desayuno', 'Café', 'Snack fuerte', 'Comida', 'Snack ligero', 'Cena']
+
 export function callSheetVacia(): CallSheet {
   return {
     llamadoGeneral: '',
     desayuno: '',
     listosPrimerTiro: '',
+    oficinaProduccion: '',
     llamados: {},
+    llamadosActores: {},
+    extras: [],
+    comidas: {},
     salidaSol: '',
     puestaSol: '',
     clima: '',
+    tempMin: '',
+    tempMax: '',
     hospital: '',
     estacionamiento: '',
     catering: '',
     emergencias: '',
+    radios: '',
     notasSeguridad: '',
     notasProduccion: '',
   }

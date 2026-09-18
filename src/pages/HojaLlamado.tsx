@@ -1,16 +1,36 @@
-// ===== Hoja de Llamado (Call Sheet) diaria, lista para imprimir =====
+// ===== Hoja de Llamado (Call Sheet) =====
+// Sigue el formato profesional de la industria: frente con locación,
+// llamados, sets, catering, secuencias, elenco numerado y necesidades;
+// reverso con todo el equipo técnico por departamento.
 import { useState } from 'react'
-import { callSheetVacia, useProyecto, useStore } from '../store'
+import { COMIDAS, callSheetVacia, useProyecto, useStore } from '../store'
 import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
-import { fechaBonita } from '../utils'
-import { diasOrdenados, elenco, nombreLocacion, numeroDia, personasTotal, tecnicos } from '../helpers'
+import { fechaBonita, uid } from '../utils'
+import { diasOrdenados, elenco, nombreLocacion, numeroDia, tecnicos } from '../helpers'
+import { colorDepartamento } from '../departamentos'
 import { buscarHospitales, type HospitalCercano } from '../hospitales'
-import type { CallSheet, Escena } from '../types'
+import type { CallSheet, Escena, EstadoActor, LlamadoActor, Persona, Proyecto } from '../types'
+
+const ESTADOS_ACTOR: { valor: EstadoActor; que: string }[] = [
+  { valor: 'SW', que: 'Empieza a trabajar' },
+  { valor: 'W', que: 'Trabaja' },
+  { valor: 'SWF', que: 'Empieza y termina hoy' },
+  { valor: 'F', que: 'Último día' },
+  { valor: 'H', que: 'En espera (no se usa hoy)' },
+]
+
+const llamadoActorVacio = (): LlamadoActor => ({
+  pickUp: '', enLocacion: '', onSet: '', estado: 'W', camarin: '', notas: '',
+})
+
+// El número con el que se identifica a cada personaje en toda la hoja
+const idPersonaje = (p: Proyecto, personaId: string) => elenco(p).findIndex(x => x.id === personaId) + 1
 
 export default function HojaLlamado() {
   const p = useProyecto()
   const setCallSheet = useStore(s => s.setCallSheet)
   const [diaSel, setDiaSel] = useState('')
+  const [verReverso, setVerReverso] = useState(false)
   if (!p) return null
 
   const dias = diasOrdenados(p)
@@ -31,16 +51,34 @@ export default function HojaLlamado() {
   const crew = tecnicos(p)
   const loc = p.locaciones.find(l => l.id === dia.locacionId)
   const n = numeroDia(p, dia.id)
+  const totalPaginas = escenas.reduce((t, e) => t + (e.paginas || 0), 0)
 
-  // Actualiza el llamado o camarín de una persona
-  const setLl = (pid: string, campo: 'llamado' | 'camarin', valor: string) => {
-    const previo = cs.llamados[pid] ?? { llamado: '', camarin: '' }
-    setCallSheet(dia.id, { llamados: { ...cs.llamados, [pid]: { ...previo, [campo]: valor } } })
+  // Sets (los espacios que se ocupan hoy), sin repetir
+  const sets = [...new Set(escenas.map(e => nombreLocacion(p, e.locacionId, e.locacionTexto)).filter(Boolean))]
+
+  // Cabezas de producción que encabezan la hoja
+  const cabezas = [
+    ['Productor/a', p.productor],
+    ['Director/a', p.director],
+    ['1er AD', p.primerAD],
+  ].filter(([, v]) => v)
+
+  const setLlamadoActor = (pid: string, patch: Partial<LlamadoActor>) =>
+    setCallSheet(dia.id, {
+      llamadosActores: {
+        ...cs.llamadosActores,
+        [pid]: { ...llamadoActorVacio(), ...cs.llamadosActores[pid], ...patch },
+      },
+    })
+
+  const setComida = (nombre: string, patch: Partial<{ personas: string; hora: string }>) => {
+    const previa = cs.comidas[nombre] ?? { personas: '', hora: '' }
+    setCallSheet(dia.id, { comidas: { ...cs.comidas, [nombre]: { ...previa, ...patch } } })
   }
 
   return (
     <>
-      <Encabezado titulo="Hoja de Llamado" subtitulo="Selecciona el día; la hoja se llena sola con el plan de rodaje">
+      <Encabezado titulo="Hoja de Llamado" subtitulo="Formato de producción: frente y reverso, listos para imprimir">
         <select className={inp + ' !w-auto'} value={dia.id} onChange={e => setDiaSel(e.target.value)}>
           {dias.map(d => (
             <option key={d.id} value={d.id}>
@@ -48,149 +86,166 @@ export default function HojaLlamado() {
             </option>
           ))}
         </select>
+        <button className={btnSec} onClick={() => setVerReverso(!verReverso)}>
+          {verReverso ? '📄 Ver frente' : '🔄 Ver reverso (equipo)'}
+        </button>
         <button className={btn} onClick={() => window.print()}>🖨 Imprimir / Guardar PDF</button>
       </Encabezado>
 
-      {/* Hoja tipo papel (esto es lo que se imprime) */}
-      <div className={papel}>
-        {/* Encabezado de producción */}
-        <div className="bg-copal-400 text-zinc-900 rounded-t px-4 py-3 flex flex-wrap items-center justify-between gap-3 print:rounded-none">
+      {/* ================= FRENTE ================= */}
+      <div className={papel + (verReverso ? ' hidden print:block' : '')}>
+        {/* Encabezado: día, título y fecha */}
+        <div className="bg-copal-400 text-zinc-900 px-4 py-2 flex flex-wrap items-center justify-between gap-3 rounded-t print:rounded-none">
           <div className="flex items-center gap-3">
-            {p.logo && <img src={p.logo} alt="" className="h-12 w-auto shrink-0" />}
+            {p.logo && <img src={p.logo} alt="" className="h-11 w-auto shrink-0" />}
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest">🎬 Producción</p>
-              <h2 className="text-2xl font-black leading-tight">{p.nombre}</h2>
+              <p className="text-[10px] font-bold uppercase tracking-widest">Hoja de llamado</p>
+              <h2 className="text-2xl font-black leading-none uppercase">{p.nombre}</h2>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-xl font-black">HOJA DE LLAMADO — DÍA {n} DE {dias.length}</p>
+          <div className="text-right leading-tight">
+            <p className="text-lg font-black">DÍA {n} DE {dias.length}</p>
             <p className="text-sm capitalize">{fechaBonita(dia.fecha)}</p>
           </div>
         </div>
 
-        <div className="border border-zinc-300 border-t-0 px-4 py-3 grid gap-3 sm:grid-cols-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase text-zinc-500">Llamado general</p>
-            <input
-              className={inpPapel + ' !text-xl !font-black'}
-              value={cs.llamadoGeneral}
-              onChange={e => setCallSheet(dia.id, { llamadoGeneral: e.target.value })}
-              placeholder={dia.horaInicio}
-            />
-            <p className="text-xs text-zinc-500 mt-1">Jornada: {dia.horaInicio} – {dia.horaFin}</p>
-            <label className="block text-xs mt-1">
-              🥐 Desayuno:
-              <input className={inpPapel + ' !inline-block !w-28 ml-1'} value={cs.desayuno}
-                onChange={e => setCallSheet(dia.id, { desayuno: e.target.value })} placeholder="7:00–7:45" />
-            </label>
-            <label className="block text-xs mt-1">
-              🎬 Listos para 1er tiro:
-              <input className={inpPapel + ' !inline-block !w-24 ml-1'} value={cs.listosPrimerTiro}
-                onChange={e => setCallSheet(dia.id, { listosPrimerTiro: e.target.value })} placeholder="9:00" />
-            </label>
-          </div>
-          <div className="text-sm">
-            <p><b>Director/a:</b> {p.director || '—'}</p>
-            <p><b>Productor/a:</b> {p.productor || '—'}</p>
-            <p><b>1er AD:</b> {p.primerAD || '—'}</p>
-          </div>
-          <div className="text-sm">
-            <p className="font-bold">📍 {loc?.nombre || nombreLocacion(p, dia.locacionId) || 'Locación por definir'}</p>
-            <p className="text-zinc-600">{loc?.direccion}</p>
+        {/* Tres columnas: locación · llamados · sets y cabezas */}
+        <div className="grid sm:grid-cols-3 border border-zinc-300 border-t-0 text-sm">
+          {/* Locación */}
+          <div className="p-3 border-b sm:border-b-0 sm:border-r border-zinc-300">
+            <p className={rotulo}>Locación</p>
+            <p className="font-bold">{loc?.nombre || nombreLocacion(p, dia.locacionId) || 'Por definir'}</p>
+            <p className="text-zinc-600 whitespace-pre-line">{loc?.direccion}</p>
             {loc?.direccion && (
               <a
-                className="text-copal-600 underline text-xs print:hidden"
+                className="text-rosa-600 underline text-xs print:hidden"
                 href={`https://maps.google.com/?q=${encodeURIComponent(loc.direccion)}`}
                 target="_blank"
                 rel="noreferrer"
               >
-                Ver en Google Maps →
+                Ver en el mapa →
               </a>
             )}
+            <p className={rotulo + ' mt-3'}>Oficina de producción</p>
+            <textarea
+              className={inpPapel + ' !text-xs'}
+              rows={2}
+              value={cs.oficinaProduccion}
+              onChange={e => setCallSheet(dia.id, { oficinaProduccion: e.target.value })}
+              placeholder="Dirección y teléfono"
+            />
+          </div>
+
+          {/* Llamados */}
+          <div className="p-3 border-b sm:border-b-0 sm:border-r border-zinc-300">
+            <p className={rotulo}>––– Llamado –––</p>
+            <label className="block text-xs mb-1">
+              Desayuno de cortesía
+              <input className={inpPapel} value={cs.desayuno}
+                onChange={e => setCallSheet(dia.id, { desayuno: e.target.value })} placeholder="7:00–8:00 h" />
+            </label>
+            <label className="block text-xs mb-1">
+              <b>Llamado general en locación</b>
+              <input className={inpPapel + ' !text-lg !font-black'} value={cs.llamadoGeneral}
+                onChange={e => setCallSheet(dia.id, { llamadoGeneral: e.target.value })} placeholder={dia.horaInicio} />
+            </label>
+            <label className="block text-xs">
+              Listos para 1er tiro
+              <input className={inpPapel + ' !font-bold'} value={cs.listosPrimerTiro}
+                onChange={e => setCallSheet(dia.id, { listosPrimerTiro: e.target.value })} placeholder="9:00 h" />
+            </label>
+            <p className="text-[11px] text-zinc-500 mt-2">Jornada prevista: {dia.horaInicio} – {dia.horaFin}</p>
+          </div>
+
+          {/* Sets, cabezas y catering */}
+          <div className="p-3">
+            <p className={rotulo}>Sets del día</p>
+            <p className="text-xs mb-2">{sets.join(' · ') || '—'}</p>
+
+            {cabezas.length > 0 && (
+              <table className="w-full text-xs mb-2">
+                <tbody>
+                  {cabezas.map(([puesto, quien]) => (
+                    <tr key={puesto}>
+                      <td className="pr-2 text-zinc-500 uppercase text-[10px]">{puesto}</td>
+                      <td className="font-semibold">{quien}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <p className={rotulo}>Catering · # personas · listo</p>
+            <table className="w-full text-xs">
+              <tbody>
+                {COMIDAS.map(c => (
+                  <tr key={c}>
+                    <td className="text-zinc-600 pr-1 whitespace-nowrap">{c}</td>
+                    <td className="w-12">
+                      <input className={inpPapel + ' !text-xs !px-1'} value={cs.comidas[c]?.personas || ''}
+                        onChange={e => setComida(c, { personas: e.target.value })} placeholder="—" />
+                    </td>
+                    <td className="w-16">
+                      <input className={inpPapel + ' !text-xs !px-1'} value={cs.comidas[c]?.hora || ''}
+                        onChange={e => setComida(c, { hora: e.target.value })} placeholder="hora" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-[10px] text-zinc-500 mt-1">
+              Hoy en set: {elencoDia.length} de elenco + {crew.length} de equipo
+            </p>
           </div>
         </div>
 
-        {/* Sol y clima (como en el machote profesional) */}
-        <div className="border border-zinc-300 border-t-0 px-4 py-2 grid gap-3 sm:grid-cols-3 text-sm">
-          <label className="text-xs">
-            🌅 Salida del sol:
-            <input className={inpPapel + ' !inline-block !w-20 ml-1'} value={cs.salidaSol}
-              onChange={e => setCallSheet(dia.id, { salidaSol: e.target.value })} placeholder="6:10" />
-            {'  '}🌇 Puesta:
-            <input className={inpPapel + ' !inline-block !w-20 ml-1'} value={cs.puestaSol}
-              onChange={e => setCallSheet(dia.id, { puestaSol: e.target.value })} placeholder="20:01" />
-          </label>
-          <label className="text-xs sm:col-span-2">
-            ⛅ Clima previsto:
-            <input className={inpPapel + ' !inline-block !w-64 ml-1'} value={cs.clima}
-              onChange={e => setCallSheet(dia.id, { clima: e.target.value })} placeholder="Despejado, mín 12° / máx 28°" />
-          </label>
+        {/* Sol, clima, hospital y emergencias */}
+        <div className="grid sm:grid-cols-2 border border-zinc-300 border-t-0 text-xs">
+          <div className="p-3 border-b sm:border-b-0 sm:border-r border-zinc-300 grid grid-cols-2 gap-2">
+            <label>🌅 Salida del sol
+              <input className={inpPapel} value={cs.salidaSol} onChange={e => setCallSheet(dia.id, { salidaSol: e.target.value })} placeholder="6:10" />
+            </label>
+            <label>🌇 Puesta del sol
+              <input className={inpPapel} value={cs.puestaSol} onChange={e => setCallSheet(dia.id, { puestaSol: e.target.value })} placeholder="20:01" />
+            </label>
+            <label>🌡 Temp. mín.
+              <input className={inpPapel} value={cs.tempMin} onChange={e => setCallSheet(dia.id, { tempMin: e.target.value })} placeholder="12°" />
+            </label>
+            <label>🌡 Temp. máx.
+              <input className={inpPapel} value={cs.tempMax} onChange={e => setCallSheet(dia.id, { tempMax: e.target.value })} placeholder="28°" />
+            </label>
+            <label className="col-span-2">⛅ Clima
+              <input className={inpPapel} value={cs.clima} onChange={e => setCallSheet(dia.id, { clima: e.target.value })} placeholder="Despejado (CONAGUA)" />
+            </label>
+          </div>
+          <div className="p-3 grid gap-2">
+            <CampoHospital
+              valor={cs.hospital}
+              direccionLocacion={loc?.direccion || ''}
+              onCambio={v => setCallSheet(dia.id, { hospital: v })}
+            />
+            <label>🚑 Contactos de emergencia
+              <textarea className={inpPapel} rows={2} value={cs.emergencias}
+                onChange={e => setCallSheet(dia.id, { emergencias: e.target.value })}
+                placeholder="Bomberos · Policía · Médico de producción" />
+            </label>
+          </div>
         </div>
 
-        {/* Elenco */}
-        <h3 className="font-black uppercase text-sm mt-5 mb-1">Elenco</h3>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              {['Personaje', 'Actor / Actriz', 'Llamado', 'Camarín', 'Escenas'].map(h => (
-                <th key={h} className={thPapel}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {elencoDia.length === 0 && (
-              <tr><td colSpan={5} className={tdPapel + ' text-center text-zinc-500'}>Sin elenco en las escenas de este día</td></tr>
-            )}
-            {elencoDia.map(x => (
-              <tr key={x.id}>
-                <td className={tdPapel + ' font-semibold'}>{x.personaje || '—'}</td>
-                <td className={tdPapel}>{x.nombre}</td>
-                <td className={tdPapel + ' w-24'}>
-                  <input className={inpPapel} value={cs.llamados[x.id]?.llamado || ''} onChange={e => setLl(x.id, 'llamado', e.target.value)} placeholder="07:30" />
-                </td>
-                <td className={tdPapel + ' w-24'}>
-                  <input className={inpPapel} value={cs.llamados[x.id]?.camarin || ''} onChange={e => setLl(x.id, 'camarin', e.target.value)} placeholder="1" />
-                </td>
-                <td className={tdPapel}>
-                  {escenas.filter(e => e.personajeIds.includes(x.id)).map(e => e.numero).join(', ')}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Reglamento y notas preventivas */}
+        <div className="border border-zinc-300 border-t-0 p-3 text-xs">
+          <p className={rotulo}>Reglamento básico en set y notas preventivas del día</p>
+          <textarea className={inpPapel} rows={2} value={cs.notasSeguridad}
+            onChange={e => setCallSheet(dia.id, { notasSeguridad: e.target.value })}
+            placeholder="Máx. 12 h de jornada diurna / 10 h nocturna · llevar ropa abrigadora · respetar las líneas de seguridad…" />
+        </div>
 
-        {/* Equipo técnico */}
-        <h3 className="font-black uppercase text-sm mt-5 mb-1">Equipo técnico</h3>
+        {/* Secuencias del día */}
+        <h3 className={titulo3}>*** Secuencias para realizar ***</h3>
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              {['Rol', 'Nombre', 'Llamado'].map(h => (
-                <th key={h} className={thPapel}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {crew.length === 0 && (
-              <tr><td colSpan={3} className={tdPapel + ' text-center text-zinc-500'}>Registra al equipo técnico en «Elenco y Equipo»</td></tr>
-            )}
-            {crew.map(x => (
-              <tr key={x.id}>
-                <td className={tdPapel + ' font-semibold'}>{x.rol || '—'}</td>
-                <td className={tdPapel}>{x.nombre}</td>
-                <td className={tdPapel + ' w-24'}>
-                  <input className={inpPapel} value={cs.llamados[x.id]?.llamado || ''} onChange={e => setLl(x.id, 'llamado', e.target.value)} placeholder="07:00" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Escenas del día */}
-        <h3 className="font-black uppercase text-sm mt-5 mb-1">Escenas del día</h3>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              {['Esc.', 'INT/EXT', 'Momento', 'Sinopsis', 'Elenco', 'Notas'].map(h => (
+              {['Sec.', 'I/E', 'Set', 'Descripción', 'Pgs.', 'D/N', 'Personajes'].map(h => (
                 <th key={h} className={thPapel}>{h}</th>
               ))}
             </tr>
@@ -198,57 +253,320 @@ export default function HojaLlamado() {
           <tbody>
             {escenas.map(e => (
               <tr key={e.id}>
-                <td className={tdPapel + ' font-bold'}>{e.numero}</td>
-                <td className={tdPapel}>{e.intExt}</td>
-                <td className={tdPapel}>{e.momento}</td>
+                <td className={tdPapel + ' font-bold w-12'}>{e.numero}</td>
+                <td className={tdPapel + ' w-14'}>{e.intExt}</td>
+                <td className={tdPapel + ' whitespace-nowrap'}>{nombreLocacion(p, e.locacionId, e.locacionTexto)}</td>
                 <td className={tdPapel}>{e.sinopsis}</td>
-                <td className={tdPapel}>
-                  {e.personajeIds.map(idp => p.personas.find(x => x.id === idp)?.personaje || '').filter(Boolean).join(', ')}
+                <td className={tdPapel + ' w-14 text-right'}>{e.paginas || ''}</td>
+                <td className={tdPapel + ' w-20'}>{e.momento}</td>
+                <td className={tdPapel + ' w-24 font-semibold'}>
+                  {e.personajeIds.map(id => idPersonaje(p, id)).filter(Boolean).sort((a, b) => a - b).join(', ')}
                 </td>
-                <td className={tdPapel}>{e.notas}</td>
               </tr>
             ))}
+            {escenas.length === 0 && (
+              <tr><td colSpan={7} className={tdPapel + ' text-center text-zinc-500'}>Sin escenas asignadas a este día</td></tr>
+            )}
+            <tr className="bg-zinc-100">
+              <td className={tdPapel + ' font-black'} colSpan={4}>Total de páginas</td>
+              <td className={tdPapel + ' text-right font-black'}>{totalPaginas.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')}</td>
+              <td className={tdPapel} colSpan={2} />
+            </tr>
           </tbody>
         </table>
+        <p className="text-[10px] text-zinc-500 mt-1">El orden puede cambiar durante el rodaje.</p>
 
-        {/* Logística */}
-        <h3 className="font-black uppercase text-sm mt-5 mb-1">Logística</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm">
-            <b>🅿️ Estacionamiento</b>
-            <textarea className={inpPapel} rows={2} value={cs.estacionamiento} onChange={e => setCallSheet(dia.id, { estacionamiento: e.target.value })} />
+        {/* Elenco con llamados escalonados */}
+        <h3 className={titulo3}>Elenco</h3>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              {['ID', 'Actor / Actriz', 'Personaje', 'Pick up', 'En loc. (M/P/V)', 'On set', '# Sec.', 'Estado'].map(h => (
+                <th key={h} className={thPapel}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {elencoDia.length === 0 && (
+              <tr><td colSpan={8} className={tdPapel + ' text-center text-zinc-500'}>Sin elenco en las escenas de este día</td></tr>
+            )}
+            {elencoDia.map(x => {
+              const ll = { ...llamadoActorVacio(), ...cs.llamadosActores[x.id] }
+              return (
+                <tr key={x.id}>
+                  <td className={tdPapel + ' font-black w-10 text-center'}>{idPersonaje(p, x.id)}</td>
+                  <td className={tdPapel}>{x.nombre || '—'}</td>
+                  <td className={tdPapel + ' font-semibold'}>{x.personaje}</td>
+                  <td className={tdPapel + ' w-20'}>
+                    <input className={inpPapel + ' !text-xs'} value={ll.pickUp}
+                      onChange={e => setLlamadoActor(x.id, { pickUp: e.target.value })} placeholder="7:00" />
+                  </td>
+                  <td className={tdPapel + ' w-20'}>
+                    <input className={inpPapel + ' !text-xs'} value={ll.enLocacion}
+                      onChange={e => setLlamadoActor(x.id, { enLocacion: e.target.value })} placeholder="7:30" />
+                  </td>
+                  <td className={tdPapel + ' w-20'}>
+                    <input className={inpPapel + ' !text-xs'} value={ll.onSet}
+                      onChange={e => setLlamadoActor(x.id, { onSet: e.target.value })} placeholder="9:00" />
+                  </td>
+                  <td className={tdPapel + ' text-xs'}>
+                    {escenas.filter(e => e.personajeIds.includes(x.id)).map(e => e.numero).join(', ')}
+                  </td>
+                  <td className={tdPapel + ' w-20'}>
+                    <select className={inpPapel + ' !text-xs'} value={ll.estado}
+                      onChange={e => setLlamadoActor(x.id, { estado: e.target.value as EstadoActor })}>
+                      {ESTADOS_ACTOR.map(s => <option key={s.valor} value={s.valor}>{s.valor}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <p className="text-[10px] text-zinc-500 mt-1">
+          {ESTADOS_ACTOR.map(s => `${s.valor} = ${s.que}`).join(' · ')} · M/P/V = maquillaje, peinado y vestuario
+        </p>
+
+        {/* Extras */}
+        <ExtrasDelDia cs={cs} onCambio={v => setCallSheet(dia.id, { extras: v })} />
+
+        {/* Necesidades, salidas del desglose de las escenas del día */}
+        <Necesidades escenas={escenas} />
+
+        {/* Logística del día */}
+        <h3 className={titulo3}>Logística</h3>
+        <div className="grid gap-3 sm:grid-cols-3 text-sm">
+          <label className="block">
+            <b>🅿️ Estacionamiento y base</b>
+            <textarea className={inpPapel} rows={2} value={cs.estacionamiento}
+              onChange={e => setCallSheet(dia.id, { estacionamiento: e.target.value })} />
           </label>
-          <label className="block text-sm">
-            <b>🍽 Catering (horario de comidas)</b>
-            {/* Número de comidas del día: quién está llamado + lo que contempla el presupuesto */}
-            <span className="block text-xs text-zinc-600 mb-0.5">
-              👥 Comidas del día: <b>{elencoDia.length + crew.length}</b> ({elencoDia.length} elenco + {crew.length} equipo)
-              {personasTotal(p) > 0 && <> · el presupuesto contempla <b>{personasTotal(p)}</b> personas</>}
-            </span>
-            <textarea className={inpPapel} rows={2} value={cs.catering} onChange={e => setCallSheet(dia.id, { catering: e.target.value })} />
+          <label className="block">
+            <b>📻 Canales de radio</b>
+            <textarea className={inpPapel} rows={2} value={cs.radios}
+              onChange={e => setCallSheet(dia.id, { radios: e.target.value })}
+              placeholder="1 Dirección · 2 Abierto · 3 Producción · 4 Maquillaje…" />
           </label>
-          <CampoHospital
-            valor={cs.hospital}
-            direccionLocacion={loc?.direccion || ''}
-            onCambio={v => setCallSheet(dia.id, { hospital: v })}
-          />
-          <label className="block text-sm">
-            <b>🚑 Contactos de emergencia</b>
-            <textarea className={inpPapel} rows={2} value={cs.emergencias} onChange={e => setCallSheet(dia.id, { emergencias: e.target.value })} placeholder="Bomberos, policía, médico de producción…" />
+          <label className="block">
+            <b>📝 Notas de producción</b>
+            <textarea className={inpPapel} rows={2} value={cs.notasProduccion}
+              onChange={e => setCallSheet(dia.id, { notasProduccion: e.target.value })} />
           </label>
-          <label className="block text-sm">
-            <b>⚠️ Reglamento / notas de seguridad en set</b>
-            <textarea className={inpPapel} rows={2} value={cs.notasSeguridad} onChange={e => setCallSheet(dia.id, { notasSeguridad: e.target.value })} placeholder="Máx. 12 h de jornada diurna / 10 h nocturna · protocolos del día" />
-          </label>
-          <label className="block text-sm">
-            <b>📝 Notas de producción del día</b>
-            <textarea className={inpPapel} rows={2} value={cs.notasProduccion} onChange={e => setCallSheet(dia.id, { notasProduccion: e.target.value })} />
-          </label>
+        </div>
+
+        <p className="text-center font-black text-sm mt-4">*** Sean puntuales · Llamados específicos al reverso ***</p>
+
+        {/* Firmas */}
+        <div className="grid grid-cols-2 gap-8 mt-6 text-center text-xs">
+          <div className="border-t border-zinc-400 pt-1">{p.primerAD || '—'}<br /><span className="text-zinc-500">1er AD</span></div>
+          <div className="border-t border-zinc-400 pt-1">{p.productor || '—'}<br /><span className="text-zinc-500">Producción</span></div>
         </div>
 
         <FirmaCasa />
       </div>
+
+      {/* ================= REVERSO: equipo técnico ================= */}
+      <div className={papel + ' mt-6 print:mt-0 print:break-before-page' + (verReverso ? '' : ' hidden print:block')}>
+        <div className="flex items-center justify-between border-b-2 border-zinc-300 pb-2 mb-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-zinc-500">Llamados por departamento</p>
+            <h2 className="text-xl font-black uppercase">{p.nombre}</h2>
+          </div>
+          <p className="text-sm font-bold text-right">
+            DÍA {n} DE {dias.length}
+            <span className="block text-xs font-normal capitalize">{fechaBonita(dia.fecha)}</span>
+          </p>
+        </div>
+
+        <CrewPorDepartamento
+          crew={crew}
+          llamados={cs.llamados}
+          llamadoGeneral={cs.llamadoGeneral || dia.horaInicio}
+          onCambio={(pid, hora) => {
+            const previo = cs.llamados[pid] ?? { llamado: '', camarin: '' }
+            setCallSheet(dia.id, { llamados: { ...cs.llamados, [pid]: { ...previo, llamado: hora } } })
+          }}
+        />
+
+        <p className="text-[10px] text-zinc-500 mt-3">
+          P/SS = por sí solo · P/D = por departamento · S/L = sin llamado
+        </p>
+
+        <FirmaCasa />
+      </div>
     </>
+  )
+}
+
+// Estilos que se repiten en la hoja
+const rotulo = 'text-[10px] font-bold uppercase tracking-wider text-zinc-500'
+const titulo3 = 'font-black uppercase text-sm mt-5 mb-1'
+
+// --- Extras del día ---
+function ExtrasDelDia({ cs, onCambio }: { cs: CallSheet; onCambio: (v: CallSheet['extras']) => void }) {
+  const extras = cs.extras ?? []
+  const set = (id: string, patch: Partial<CallSheet['extras'][0]>) =>
+    onCambio(extras.map(x => (x.id === id ? { ...x, ...patch } : x)))
+
+  return (
+    <>
+      <h3 className={titulo3}>
+        Extras / atmósfera
+        <button
+          type="button"
+          onClick={() => onCambio([...extras, { id: uid(), descripcion: '', cantidad: '', enLocacion: '', onSet: '', escenas: '' }])}
+          className="ml-2 text-rosa-600 text-xs font-normal normal-case underline print:hidden"
+        >
+          + agregar
+        </button>
+      </h3>
+      {extras.length === 0 ? (
+        <p className="text-xs text-zinc-500 print:hidden">Sin extras este día.</p>
+      ) : (
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>{['Descripción', 'Cantidad', 'En loc.', 'On set', '# Sec.', ''].map(h => <th key={h} className={thPapel}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {extras.map(x => (
+              <tr key={x.id}>
+                <td className={tdPapel}>
+                  <input className={inpPapel + ' !text-xs'} value={x.descripcion}
+                    onChange={e => set(x.id, { descripcion: e.target.value })} placeholder="Transeúntes" />
+                </td>
+                <td className={tdPapel + ' w-20'}>
+                  <input className={inpPapel + ' !text-xs'} value={x.cantidad} onChange={e => set(x.id, { cantidad: e.target.value })} placeholder="10" />
+                </td>
+                <td className={tdPapel + ' w-20'}>
+                  <input className={inpPapel + ' !text-xs'} value={x.enLocacion} onChange={e => set(x.id, { enLocacion: e.target.value })} placeholder="15:00" />
+                </td>
+                <td className={tdPapel + ' w-20'}>
+                  <input className={inpPapel + ' !text-xs'} value={x.onSet} onChange={e => set(x.id, { onSet: e.target.value })} placeholder="16:00" />
+                </td>
+                <td className={tdPapel + ' w-20'}>
+                  <input className={inpPapel + ' !text-xs'} value={x.escenas} onChange={e => set(x.id, { escenas: e.target.value })} placeholder="11" />
+                </td>
+                <td className={tdPapel + ' w-8 print:hidden'}>
+                  <button type="button" onClick={() => onCambio(extras.filter(y => y.id !== x.id))} className="text-zinc-400 hover:text-red-500">✕</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </>
+  )
+}
+
+// --- Lista de necesidades: sale sola del desglose de las escenas del día ---
+function Necesidades({ escenas }: { escenas: Escena[] }) {
+  const juntar = (saca: (e: Escena) => string[]) => {
+    const vistos = new Set<string>()
+    const lista: { escena: string; texto: string }[] = []
+    for (const e of escenas)
+      for (const t of saca(e)) {
+        const limpio = t.trim()
+        if (!limpio || vistos.has(limpio.toLowerCase())) continue
+        vistos.add(limpio.toLowerCase())
+        lista.push({ escena: e.numero, texto: limpio })
+      }
+    return lista
+  }
+
+  const columnas = [
+    { titulo: 'Utilería / props', datos: juntar(e => e.props), depto: 'utilería' },
+    { titulo: 'Vestuario', datos: juntar(e => [e.vestuario]), depto: 'vestuario' },
+    { titulo: 'Maquillaje / FX', datos: juntar(e => [e.maquillaje]), depto: 'maquillaje' },
+    { titulo: 'Vehículos', datos: juntar(e => [e.vehiculos]), depto: 'vehículo' },
+    { titulo: 'Sonido en set', datos: juntar(e => [e.sonido]), depto: 'sonido' },
+  ].filter(c => c.datos.length > 0)
+
+  if (columnas.length === 0) return null
+
+  return (
+    <>
+      <h3 className={titulo3}>Lista parcial de necesidades</h3>
+      <div className="grid gap-3 sm:grid-cols-3 text-xs">
+        {columnas.map(c => (
+          <div key={c.titulo} className="border-l-2 pl-2" style={{ borderLeftColor: colorDepartamento(c.depto) }}>
+            <p className="font-bold uppercase text-[10px]" style={{ color: colorDepartamento(c.depto) }}>{c.titulo}</p>
+            <ul>
+              {c.datos.map((d, i) => (
+                <li key={i} className="text-zinc-700">
+                  <span className="text-zinc-400">sec {d.escena}:</span> {d.texto}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-zinc-500 mt-1">
+        Sale del desglose de las escenas del día. *** Favor de revisar todos los requerimientos ***
+      </p>
+    </>
+  )
+}
+
+// --- Reverso: el equipo agrupado por departamento ---
+function CrewPorDepartamento({
+  crew,
+  llamados,
+  llamadoGeneral,
+  onCambio,
+}: {
+  crew: Persona[]
+  llamados: CallSheet['llamados']
+  llamadoGeneral: string
+  onCambio: (personaId: string, hora: string) => void
+}) {
+  if (crew.length === 0)
+    return <p className="text-sm text-zinc-500">Registra al equipo técnico en «Elenco y Equipo» y aquí saldrán sus llamados.</p>
+
+  // agrupa por el color/familia de departamento que ya usa la app
+  const grupos = new Map<string, Persona[]>()
+  for (const x of crew) {
+    const clave = x.rol || 'Sin departamento'
+    const color = colorDepartamento(clave)
+    const lista = grupos.get(color) || []
+    lista.push(x)
+    grupos.set(color, lista)
+  }
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-x-6">
+      {[...grupos.entries()].map(([color, gente]) => (
+        <div key={color} className="mb-3 break-inside-avoid">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                {['Puesto', 'Nombre', 'Celular', 'Llamado'].map(h => (
+                  <th key={h} className={thPapel} style={{ borderBottomColor: color, borderBottomWidth: 2 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {gente.map(x => (
+                <tr key={x.id}>
+                  <td className={tdPapel + ' text-xs font-semibold'} style={{ borderLeftColor: color, borderLeftWidth: 3 }}>
+                    {x.rol || '—'}
+                  </td>
+                  <td className={tdPapel + ' text-xs'}>{x.nombre}</td>
+                  <td className={tdPapel + ' text-xs whitespace-nowrap'}>{x.telefono}</td>
+                  <td className={tdPapel + ' w-20'}>
+                    <input
+                      className={inpPapel + ' !text-xs'}
+                      value={llamados[x.id]?.llamado || ''}
+                      onChange={e => onCambio(x.id, e.target.value)}
+                      placeholder={llamadoGeneral}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -272,8 +590,7 @@ function CampoHospital({
     setBuscando(true)
     try {
       const encontrados = await buscarHospitales(direccionLocacion)
-      if (encontrados.length === 0)
-        setError('No encontré hospitales registrados cerca. Escríbelo a mano.')
+      if (encontrados.length === 0) setError('No encontré hospitales registrados cerca. Escríbelo a mano.')
       setResultados(encontrados)
     } catch {
       setError('No se pudo consultar el mapa. Revisa tu internet o escríbelo a mano.')
@@ -283,48 +600,29 @@ function CampoHospital({
   }
 
   return (
-    <label className="block text-sm">
-      <b>🏥 Hospital más cercano</b>
-      <textarea
-        className={inpPapel}
-        rows={2}
-        value={valor}
-        onChange={e => onCambio(e.target.value)}
-        placeholder="Nombre y dirección del hospital"
-      />
+    <label className="block">
+      🏥 Hospital más cercano
+      <textarea className={inpPapel} rows={2} value={valor} onChange={e => onCambio(e.target.value)}
+        placeholder="Nombre y dirección del hospital" />
 
       <div className="print:hidden mt-1">
         {direccionLocacion ? (
-          <button type="button" onClick={buscar} disabled={buscando} className={btnSec + ' !text-xs !py-1'}>
-            {buscando ? '🔎 Buscando cerca de la locación…' : '🔎 Buscar hospitales cerca'}
+          <button type="button" onClick={buscar} disabled={buscando} className={btnSec + ' !text-xs !py-0.5'}>
+            {buscando ? '🔎 Buscando…' : '🔎 Buscar cercanos'}
           </button>
         ) : (
-          <p className="text-[11px] text-zinc-500">
-            Ponle dirección a la locación del día (en Locaciones) y aquí podré buscarte los hospitales cercanos.
-          </p>
+          <p className="text-[10px] text-zinc-500">Ponle dirección a la locación y aquí te busco los hospitales cercanos.</p>
         )}
-
-        {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
-
+        {error && <p className="text-[10px] text-red-600 mt-1">{error}</p>}
         {resultados && resultados.length > 0 && (
-          <div className="mt-1.5 border border-zinc-300 rounded divide-y divide-zinc-200 max-h-48 overflow-y-auto">
+          <div className="mt-1 border border-zinc-300 rounded divide-y divide-zinc-200 max-h-36 overflow-y-auto">
             {resultados.map((h, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() =>
-                  onCambio([h.nombre, h.direccion, h.telefono && `Tel. ${h.telefono}`].filter(Boolean).join(' · '))
-                }
-                className="w-full text-left px-2 py-1.5 hover:bg-zinc-100 text-xs"
-              >
-                <span className="font-semibold">{h.nombre}</span>{' '}
-                <span className="text-zinc-500">a {h.distanciaKm} km</span>
-                {h.direccion && <span className="block text-zinc-500">{h.direccion}</span>}
+              <button key={i} type="button"
+                onClick={() => onCambio([h.nombre, h.direccion, h.telefono && `Tel. ${h.telefono}`].filter(Boolean).join(' · '))}
+                className="w-full text-left px-2 py-1 hover:bg-zinc-100 text-[11px]">
+                <b>{h.nombre}</b> <span className="text-zinc-500">a {h.distanciaKm} km</span>
               </button>
             ))}
-            <p className="px-2 py-1 text-[10px] text-zinc-500 bg-zinc-50">
-              Toca uno para usarlo. Datos de OpenStreetMap — confírmalos antes del rodaje.
-            </p>
           </div>
         )}
       </div>

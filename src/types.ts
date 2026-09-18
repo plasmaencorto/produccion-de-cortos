@@ -113,18 +113,56 @@ export interface Equipo {
 
 // Datos extra de la hoja de llamado de un día de rodaje
 // (campos tomados del machote profesional de llamado)
+// Estado de trabajo del actor en el día, como se marca en la industria:
+// SW = empieza, W = trabaja, SWF = empieza y termina el mismo día,
+// F = último día, H = contratado pero no se le usa hoy
+export type EstadoActor = 'SW' | 'W' | 'SWF' | 'F' | 'H'
+
+// Llamados escalonados de un actor (el orden real de un rodaje)
+export interface LlamadoActor {
+  pickUp: string // hora en que lo pasan a recoger
+  enLocacion: string // llega a maquillaje / peinado / vestuario
+  onSet: string // listo en el set
+  estado: EstadoActor
+  camarin: string
+  notas: string
+}
+
+// Una comida del día, con cuánta gente y a qué hora está lista
+export interface Comida {
+  personas: string
+  hora: string
+}
+
+// Extras (atmósfera) del día
+export interface ExtraDia {
+  id: string
+  descripcion: string // "transeúntes"
+  cantidad: string
+  enLocacion: string
+  onSet: string
+  escenas: string
+}
+
 export interface CallSheet {
   llamadoGeneral: string
   desayuno: string // horario del desayuno de cortesía
   listosPrimerTiro: string // "listos para 1er tiro"
-  llamados: Record<string, { llamado: string; camarin: string }> // por persona
+  oficinaProduccion: string // dirección y teléfono de la oficina
+  llamados: Record<string, { llamado: string; camarin: string }> // crew: hora de llamado
+  llamadosActores: Record<string, LlamadoActor> // elenco: pick up / maquillaje / set
+  extras: ExtraDia[]
+  comidas: Record<string, Comida> // desayuno, café, snack fuerte, comida, snack ligero, cena
   salidaSol: string
   puestaSol: string
   clima: string
+  tempMin: string
+  tempMax: string
   hospital: string // hospital más cercano a la locación
   estacionamiento: string
   catering: string
   emergencias: string
+  radios: string // canales asignados por departamento
   notasSeguridad: string // reglamento en set / notas preventivas
   notasProduccion: string
 }
