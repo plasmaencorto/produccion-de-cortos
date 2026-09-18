@@ -1,6 +1,6 @@
 // ===== Piezas de interfaz reutilizables y clases de estilo compartidas =====
 import { useId, useState, type ReactNode } from 'react'
-import logoPlasma from '../assets/logo-plasma.png'
+import logoPlasmaPapel from '../assets/logo-plasma-papel.png'
 import logoCopal from '../assets/logo-copal.svg'
 
 // Colores de la casa (tomados de plasmaencorto.com)
@@ -40,7 +40,7 @@ export function FirmaCasa() {
           Documento generado con <b>Producción de Cortos</b>
         </p>
         <div className="flex items-center gap-3 shrink-0">
-          <img src={logoPlasma} alt="Plasma en Corto" className="h-7 w-auto" />
+          <img src={logoPlasmaPapel} alt="Plasma en Corto" className="h-8 w-auto" />
           <img src={logoCopal} alt="Olor a Copal" className="h-7 w-auto" />
         </div>
       </div>
