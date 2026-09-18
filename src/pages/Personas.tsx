@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, Modal, Vacio, btn, btnSec, inp, td, th } from '../components/ui'
 import { dinero, num, uid } from '../utils'
+import { colorDepartamento, conTransparencia } from '../departamentos'
 import type { EstadoContrato, Persona, Proyecto, TipoPersona } from '../types'
 
 const personaVacia = (tipo: TipoPersona): Persona => ({
@@ -101,7 +102,19 @@ export default function Personas() {
                       <td className={td}>{x.categoria}</td>
                     </>
                   ) : (
-                    <td className={td + ' text-copal-300'}>{x.rol}</td>
+                    <td className={td}>
+                      {x.rol ? (
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold"
+                          style={{
+                            color: colorDepartamento(x.rol),
+                            backgroundColor: conTransparencia(colorDepartamento(x.rol), 0.15),
+                          }}
+                        >
+                          {x.rol}
+                        </span>
+                      ) : '—'}
+                    </td>
                   )}
                   <td className={td + ' text-xs text-zinc-400'}>
                     {x.telefono && <p>📞 {x.telefono}</p>}

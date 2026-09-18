@@ -20,6 +20,7 @@ import {
   totalLinea,
 } from '../helpers'
 import { PLANTILLA_PRESUPUESTO } from '../plantillaPresupuesto'
+import { colorDepartamento, conTransparencia, familias } from '../departamentos'
 import type { Proyecto } from '../types'
 
 export default function Presupuesto() {
@@ -64,7 +65,6 @@ export default function Presupuesto() {
   return (
     <>
       <Encabezado titulo="Presupuesto" subtitulo="Cuentas numeradas estilo industria · cantidad × multiplicador × tarifa, con IVA opcional">
-        <button className={btnSec} onClick={() => window.location.reload()}>🔄 Refrescar</button>
         <button className={btnSec} onClick={exportarCSV}>⬇ Exportar CSV (Excel)</button>
         <Link className={btnSec} to={`/p/${p.id}/reportes?tipo=presupuesto`}>🖨 Imprimir / PDF</Link>
       </Encabezado>
@@ -88,6 +88,17 @@ export default function Presupuesto() {
           <p className="text-xs text-zinc-400">Diferencia</p>
           <p className={`text-xl font-bold ${dif < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{dinero(dif)}</p>
         </div>
+      </div>
+
+      {/* Leyenda: qué color es cada departamento */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4 text-[11px] text-zinc-400">
+        <span className="uppercase tracking-wider text-zinc-500">Departamentos:</span>
+        {familias.map(f => (
+          <span key={f.nombre} className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: f.color }} />
+            {f.nombre}
+          </span>
+        ))}
       </div>
 
       <p className="text-xs text-zinc-500 mb-4">
@@ -135,15 +146,30 @@ function Categoria({
   const esPersonal = esCuentaDePersonal(categoria)
   const gente = personasCategoria(p, categoria)
 
+  // color del departamento al que pertenece la cuenta
+  const color = colorDepartamento(categoria)
+  const [numero, ...resto] = categoria.split('·')
+  const nombreCuenta = resto.join('·').trim()
+
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl mb-3 overflow-hidden">
+    <div
+      className="bg-zinc-900 border border-zinc-800 rounded-xl mb-3 overflow-hidden border-l-4"
+      style={{ borderLeftColor: color }}
+    >
       <button
         onClick={() => setAbierta(!abierta)}
         className="w-full flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-zinc-800/60 text-left"
+        style={{ backgroundColor: conTransparencia(color, 0.07) }}
       >
-        <span className="flex items-center gap-2 font-semibold text-zinc-100 text-sm">
+        <span className="flex items-center gap-2 font-semibold text-sm">
           <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${punto}`} title={`Semáforo: ${sem}`} />
-          {categoria}
+          <span
+            className="font-black tabular-nums px-1.5 py-0.5 rounded text-xs"
+            style={{ color, backgroundColor: conTransparencia(color, 0.15) }}
+          >
+            {numero.trim()}
+          </span>
+          <span className="text-zinc-100">{nombreCuenta || categoria}</span>
         </span>
         <span className="text-xs text-zinc-400 whitespace-nowrap">
           {esPersonal && gente > 0 && <span className="text-copal-300/80 mr-2">👥 {gente}</span>}

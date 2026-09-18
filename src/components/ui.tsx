@@ -29,18 +29,22 @@ export function Greca({ className = '', color = TURQUESA }: { className?: string
   )
 }
 
-// Firma de la casa para los documentos impresos (hojas de llamado, reportes)
+// Firma de la casa para los documentos impresos (hojas de llamado, reportes).
+// Cierra con la grequita, para que la hoja se reconozca de un vistazo.
 export function FirmaCasa() {
   return (
-    <div className="mt-6 pt-3 border-t border-zinc-300 flex items-center justify-between gap-4">
-      <p className="text-[10px] text-zinc-500 leading-tight">
-        Documento generado con <b>Producción de Cortos</b>
-      </p>
-      <div className="flex items-center gap-3 shrink-0">
-        <img src={logoPlasma} alt="Plasma en Corto" className="h-7 w-auto" />
-        <img src={logoCopal} alt="Olor a Copal" className="h-7 w-auto" />
+    <>
+      <Greca className="mt-6 opacity-90" />
+      <div className="pt-3 flex items-center justify-between gap-4">
+        <p className="text-[10px] text-zinc-500 leading-tight">
+          Documento generado con <b>Producción de Cortos</b>
+        </p>
+        <div className="flex items-center gap-3 shrink-0">
+          <img src={logoPlasma} alt="Plasma en Corto" className="h-7 w-auto" />
+          <img src={logoCopal} alt="Olor a Copal" className="h-7 w-auto" />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -99,7 +103,8 @@ export function Encabezado({
   children?: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+    // al imprimir no sale: en el papel manda el encabezado del propio documento
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-5 print:hidden">
       <div>
         <h1 className="text-2xl font-bold text-zinc-100">{titulo}</h1>
         {subtitulo && <p className="text-sm text-zinc-400 mt-0.5">{subtitulo}</p>}

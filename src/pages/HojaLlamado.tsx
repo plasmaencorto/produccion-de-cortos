@@ -1,7 +1,7 @@
 // ===== Hoja de Llamado (Call Sheet) diaria, lista para imprimir =====
 import { useState } from 'react'
 import { callSheetVacia, useProyecto, useStore } from '../store'
-import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
+import { Encabezado, FirmaCasa, Greca, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
 import { fechaBonita } from '../utils'
 import { diasOrdenados, elenco, nombreLocacion, numeroDia, personasTotal, tecnicos } from '../helpers'
 import { buscarHospitales, type HospitalCercano } from '../hospitales'
@@ -67,6 +67,7 @@ export default function HojaLlamado() {
             <p className="text-sm capitalize">{fechaBonita(dia.fecha)}</p>
           </div>
         </div>
+        <Greca />
 
         <div className="border border-zinc-300 border-t-0 px-4 py-3 grid gap-3 sm:grid-cols-3">
           <div>

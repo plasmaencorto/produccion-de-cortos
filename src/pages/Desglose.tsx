@@ -5,6 +5,7 @@ import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, Modal, Vacio, btn, btnSec, inp, td, th } from '../components/ui'
 import { aCSV, descargarArchivo, num, uid } from '../utils'
 import { elenco, nombreLocacion } from '../helpers'
+import { colorDepartamento, conTransparencia } from '../departamentos'
 import type { Escena, EstadoEscena, IntExt, Momento, Proyecto } from '../types'
 
 const escenaVacia = (): Escena => ({
@@ -247,21 +248,21 @@ function EditorEscena({
             </div>
           )}
         </Campo>
-        <Campo etiqueta="Props / utilería (separados por coma)" className="md:col-span-2">
+        <CampoDepto etiqueta="Props / utilería (separados por coma)" depto="utilería">
           <input className={inp} value={propsTexto} onChange={e => setPropsTexto(e.target.value)} placeholder="pistola de utilería, maleta roja" />
-        </Campo>
-        <Campo etiqueta="Vestuario especial" className="md:col-span-2">
+        </CampoDepto>
+        <CampoDepto etiqueta="Vestuario especial" depto="vestuario">
           <input className={inp} value={b.vestuario} onChange={e => set({ vestuario: e.target.value })} />
-        </Campo>
-        <Campo etiqueta="Maquillaje / FX especiales" className="md:col-span-2">
+        </CampoDepto>
+        <CampoDepto etiqueta="Maquillaje / FX especiales" depto="maquillaje">
           <input className={inp} value={b.maquillaje} onChange={e => set({ maquillaje: e.target.value })} />
-        </Campo>
-        <Campo etiqueta="Vehículos" className="md:col-span-2">
+        </CampoDepto>
+        <CampoDepto etiqueta="Vehículos" depto="vehículo">
           <input className={inp} value={b.vehiculos} onChange={e => set({ vehiculos: e.target.value })} />
-        </Campo>
-        <Campo etiqueta="Efectos de sonido en set" className="md:col-span-2">
+        </CampoDepto>
+        <CampoDepto etiqueta="Efectos de sonido en set" depto="sonido">
           <input className={inp} value={b.sonido} onChange={e => set({ sonido: e.target.value })} />
-        </Campo>
+        </CampoDepto>
         <Campo etiqueta="Notas adicionales" className="md:col-span-2">
           <input className={inp} value={b.notas} onChange={e => set({ notas: e.target.value })} />
         </Campo>
@@ -276,5 +277,30 @@ function EditorEscena({
         </button>
       </div>
     </Modal>
+  )
+}
+
+// Campo del desglose marcado con el color de su departamento,
+// para ubicar de un vistazo qué le toca a cada área
+function CampoDepto({
+  etiqueta,
+  depto,
+  children,
+}: {
+  etiqueta: string
+  depto: string
+  children: React.ReactNode
+}) {
+  const color = colorDepartamento(depto)
+  return (
+    <label className="block md:col-span-2 border-l-2 pl-2" style={{ borderLeftColor: color }}>
+      <span
+        className="inline-block text-xs mb-1 px-1.5 rounded"
+        style={{ color, backgroundColor: conTransparencia(color, 0.15) }}
+      >
+        {etiqueta}
+      </span>
+      {children}
+    </label>
   )
 }

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useProyecto, useStore } from '../store'
-import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, papel, tdPapel, thPapel } from '../components/ui'
+import { Encabezado, FirmaCasa, Greca, Vacio, btn, btnSec, inp, papel, tdPapel, thPapel } from '../components/ui'
 import { aCSV, descargarArchivo, dinero, fechaBonita } from '../utils'
 import {
   categoriasExtra,
@@ -143,7 +143,7 @@ export default function Reportes() {
 
 function CabeceraReporte({ p, titulo }: { p: Proyecto; titulo: string }) {
   return (
-    <div className="border-b-4 border-copal-400 pb-3 mb-5">
+    <div className="pb-3 mb-5">
       <div className="flex flex-wrap items-end justify-between gap-2 mb-2">
         <div className="flex items-center gap-3">
           {p.logo && <img src={p.logo} alt="" className="h-12 w-auto shrink-0" />}
@@ -156,6 +156,7 @@ function CabeceraReporte({ p, titulo }: { p: Proyecto; titulo: string }) {
           Generado el {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
+      <Greca />
     </div>
   )
 }

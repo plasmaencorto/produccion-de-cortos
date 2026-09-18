@@ -4,6 +4,7 @@ import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, Modal, Vacio, btn, btnSec, inp, td, th } from '../components/ui'
 import { dinero, num, uid } from '../utils'
 import { DEPARTAMENTOS_EQUIPO } from '../plantillaPresupuesto'
+import { colorDepartamento, conTransparencia } from '../departamentos'
 import type { Equipo, EstadoEquipo } from '../types'
 
 const equipoVacio = (departamento: string): Equipo => ({
@@ -57,10 +58,16 @@ export default function Equipamiento() {
       {DEPARTAMENTOS_EQUIPO.map(dep => {
         const lista = p.equipos.filter(e => e.departamento === dep)
         if (lista.length === 0) return null
+        const color = colorDepartamento(dep)
         return (
           <div key={dep} className="mb-6">
-            <h2 className="font-semibold text-copal-300 mb-2">{dep}</h2>
-            <div className="overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-xl">
+            <h2 className="font-semibold mb-2 inline-flex items-center gap-2 px-2 py-1 rounded"
+              style={{ color, backgroundColor: conTransparencia(color, 0.12) }}>
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
+              {dep}
+            </h2>
+            <div className="overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-xl border-l-4"
+              style={{ borderLeftColor: color }}>
               <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b border-zinc-800">
