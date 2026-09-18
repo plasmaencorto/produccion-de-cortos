@@ -55,9 +55,15 @@ export default function Proyectos() {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <header className="text-center py-10">
-        <h1 className="text-4xl font-bold text-copal-400">🎬 Producción de Cortos</h1>
-        <p className="text-zinc-400 mt-2">Gestión de producción de cortometrajes: desglose, presupuesto, plan de rodaje y más</p>
-        <Greca className="mt-5 max-w-sm mx-auto" />
+        <h1 className="titulo-casa text-4xl sm:text-5xl">
+          <span className="bg-gradient-to-r from-rosa-500 via-rosa-400 to-copal-500 bg-clip-text text-transparent">
+            Producción de Cortos
+          </span>
+        </h1>
+        <p className="text-turquesa-300 mt-2 uppercase tracking-wide text-sm font-semibold">
+          Desglose · Presupuesto · Plan de rodaje · Hojas de llamado
+        </p>
+        <Greca className="mt-6 max-w-xs mx-auto opacity-80" />
       </header>
 
       <div className="flex flex-wrap gap-2 mb-8 justify-center">

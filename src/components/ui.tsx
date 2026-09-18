@@ -3,27 +3,28 @@ import { useId, useState, type ReactNode } from 'react'
 import logoPlasma from '../assets/logo-plasma.png'
 import logoCopal from '../assets/logo-copal.svg'
 
-// Colores de la casa (de los logotipos de Olor a Copal y Plasma en Corto)
-export const ROSA = '#ec0e73'
-export const TURQUESA = '#00b3c8'
-export const AMARILLO = '#ffc20e'
+// Colores de la casa (tomados de plasmaencorto.com)
+export const ROSA = '#e6007e'
+export const TURQUESA = '#00a39b'
+export const AMARILLO = '#ffea00'
 
-// Greca escalonada, al modo de las grecas prehispánicas.
-// Se usa como remate decorativo y para dar identidad a los documentos.
-export function Greca({ className = '' }: { className?: string }) {
+// Grequita de trazo, la misma que remata el sitio de Plasma en Corto:
+// una línea escalonada que se repite a lo ancho.
+export function Greca({ className = '', color = TURQUESA }: { className?: string; color?: string }) {
   const id = useId().replace(/:/g, '')
   return (
-    <svg className={className} height="10" width="100%" aria-hidden="true">
+    <svg className={className} height="14" width="100%" aria-hidden="true">
       <defs>
-        {/* el motivo se repite a lo ancho, sin estirarse */}
-        <pattern id={`greca-${id}`} width="72" height="10" patternUnits="userSpaceOnUse">
-          <path d="M0 10 V6 H6 V2 H12 V6 H18 V10 Z" fill={ROSA} />
-          <path d="M18 10 V6 H24 V2 H30 V6 H36 V10 Z" fill={TURQUESA} />
-          <path d="M36 10 V6 H42 V2 H48 V6 H54 V10 Z" fill={AMARILLO} />
-          <path d="M54 10 V6 H60 V2 H66 V6 H72 V10 Z" fill={TURQUESA} />
+        <pattern id={`greca-${id}`} width="40" height="14" patternUnits="userSpaceOnUse">
+          <path
+            d="M0,13 L0,7 L10,7 L10,1 L20,1 L20,13 L30,13 L30,7 L40,7 L40,1"
+            fill="none"
+            stroke={color}
+            strokeWidth="2"
+          />
         </pattern>
       </defs>
-      <rect width="100%" height="10" fill={`url(#greca-${id})`} />
+      <rect width="100%" height="14" fill={`url(#greca-${id})`} />
     </svg>
   )
 }
@@ -48,8 +49,9 @@ export const inp =
   'w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-copal-500'
 export const inpMini =
   'w-full bg-transparent border border-zinc-700/60 rounded px-1.5 py-1 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-copal-500'
+// El botón de acción va en rosa mexicano, como en plasmaencorto.com
 export const btn =
-  'inline-flex items-center gap-1.5 bg-copal-500 hover:bg-copal-400 text-zinc-950 font-semibold rounded-lg px-3 py-1.5 text-sm cursor-pointer disabled:opacity-40'
+  'inline-flex items-center gap-1.5 bg-rosa-500 hover:bg-rosa-400 text-white font-semibold rounded-lg px-3 py-1.5 text-sm cursor-pointer disabled:opacity-40'
 export const btnSec =
   'inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 rounded-lg px-3 py-1.5 text-sm cursor-pointer'
 export const btnPeligro =

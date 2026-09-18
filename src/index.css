@@ -1,43 +1,82 @@
 @import "tailwindcss";
 
-/* ===== Paleta de la casa =====
-   Tomada de los logotipos de Olor a Copal y Plasma en Corto:
-   amarillo copal, rosa mexicano y turquesa. Sobre fondo oscuro,
-   con grecas como guiño autóctono. */
+/* ===== Tipografía de la casa =====
+   Outfit, la misma de plasmaencorto.com. Va incrustada para que el
+   archivo suelto se vea igual aunque no haya internet. */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/outfit-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/outfit-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/outfit-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./assets/outfit-900.woff2') format('woff2');
+}
+
+/* ===== Colores de la casa =====
+   Tomados tal cual de plasmaencorto.com */
 @theme {
-  /* Amarillo copal: el acento principal */
-  --color-copal-100: #fff4d1;
-  --color-copal-200: #ffe8a3;
-  --color-copal-300: #ffd75c;
-  --color-copal-400: #ffc92e;
-  --color-copal-500: #ffc20e;
-  --color-copal-600: #d19a00;
-  --color-copal-700: #9e7400;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Rosa mexicano */
-  --color-rosa-100: #fde7f1;
-  --color-rosa-300: #f890bc;
-  --color-rosa-400: #f4589a;
-  --color-rosa-500: #ec0e73;
-  --color-rosa-600: #c70b60;
-  --color-rosa-700: #9e0a4d;
+  /* Amarillo: el acento de lectura sobre el fondo oscuro */
+  --color-copal-100: #fffde0;
+  --color-copal-200: #fff9a8;
+  --color-copal-300: #fff45c;
+  --color-copal-400: #ffee1f;
+  --color-copal-500: #ffea00;
+  --color-copal-600: #ccbb00;
+  --color-copal-700: #8f8300;
 
-  /* Turquesa */
-  --color-turquesa-100: #d6f4f8;
-  --color-turquesa-300: #6fdcea;
-  --color-turquesa-400: #22c6db;
-  --color-turquesa-500: #00b3c8;
-  --color-turquesa-600: #0092a3;
-  --color-turquesa-700: #00707d;
+  /* Rosa mexicano: los botones y lo que invita a hacer algo */
+  --color-rosa-100: #ffe0f0;
+  --color-rosa-300: #ff7ac0;
+  --color-rosa-400: #f53f9f;
+  --color-rosa-500: #e6007e;
+  --color-rosa-600: #bf0069;
+  --color-rosa-700: #8f004f;
+
+  /* Turquesa: datos y apoyos */
+  --color-turquesa-100: #d4f5f3;
+  --color-turquesa-300: #5fd6cf;
+  --color-turquesa-400: #14bdb3;
+  --color-turquesa-500: #00a39b;
+  --color-turquesa-600: #00857f;
+  --color-turquesa-700: #00615c;
 }
 
 html {
   color-scheme: dark;
 }
 body {
-  background: #09090b;
+  background: #0a0a0a;
   color: #f4f4f5;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Títulos condensados y en mayúsculas, al estilo del sitio */
+.titulo-casa {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 /* Impresión: fondo blanco, márgenes de página */
@@ -49,7 +88,7 @@ body {
     background: white;
     color: black;
   }
-  /* que las grecas y los logos sí salgan impresos */
+  /* que los colores y logos sí salgan impresos */
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
