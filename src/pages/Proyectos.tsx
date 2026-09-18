@@ -126,6 +126,26 @@ export default function Proyectos() {
           </div>
         ))}
       </div>
+
+      {/* Quién hace la herramienta */}
+      <footer className="mt-16 pt-8 border-t border-zinc-800/80 flex flex-col items-center gap-4">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest">Una herramienta de</p>
+        <div className="flex flex-wrap items-center justify-center gap-8">
+          <img
+            src="./logo-plasma.png"
+            alt="Plasma en Corto — Centro Cinematográfico de la Laguna"
+            className="h-16 sm:h-20 w-auto opacity-90 hover:opacity-100 transition-opacity"
+          />
+          <img
+            src="./logo-copal.svg"
+            alt="Olor a Copal"
+            className="h-16 sm:h-20 w-auto opacity-90 hover:opacity-100 transition-opacity"
+          />
+        </div>
+        <p className="text-[11px] text-zinc-600 text-center">
+          Hecha para quien produce cine en corto. Úsala libremente. 🎬
+        </p>
+      </footer>
     </div>
   )
 }

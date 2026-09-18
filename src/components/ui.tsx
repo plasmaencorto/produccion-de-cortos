@@ -1,5 +1,5 @@
 // ===== Piezas de interfaz reutilizables y clases de estilo compartidas =====
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 // Clases de estilo (tema oscuro)
 export const inp =
@@ -60,8 +60,43 @@ export function Encabezado({
         <h1 className="text-2xl font-bold text-zinc-100">{titulo}</h1>
         {subtitulo && <p className="text-sm text-zinc-400 mt-0.5">{subtitulo}</p>}
       </div>
-      <div className="flex flex-wrap gap-2 print:hidden">{children}</div>
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        {children}
+        <BotonRefrescar />
+      </div>
     </div>
+  )
+}
+
+// Botón para volver a cargar la pantalla en la que se está.
+// Los datos ya se guardan solos, así que recargar no pierde nada.
+export function BotonRefrescar() {
+  const [girando, setGirando] = useState(false)
+  return (
+    <button
+      type="button"
+      title="Actualizar esta pantalla"
+      aria-label="Actualizar esta pantalla"
+      onClick={() => {
+        setGirando(true)
+        // deja que se vea el giro antes de recargar
+        setTimeout(() => location.reload(), 450)
+      }}
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-amber-400 hover:border-amber-500 cursor-pointer shrink-0"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`w-4 h-4 ${girando ? 'animate-spin' : ''}`}
+      >
+        <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6" />
+        <polyline points="20.5 3.5 20.5 9 15 9" />
+      </svg>
+    </button>
   )
 }
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="168" height="232" viewBox="0 0 168 232" fill="none">
+  <g>
+    <path d="M12 168 L12 12 L156 12 L156 108" stroke="#EC0E73" stroke-width="24" stroke-linecap="butt"/>
+    <path d="M168 108 L84 108 L84 60 L132 60" stroke="#00B3C8" stroke-width="24" stroke-linecap="butt"/>
+  </g>
+  <text x="84" y="204" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="16.2" letter-spacing="2.5" fill="#FFFFFF">OLOR A COPAL</text>
+  <rect x="0" y="214" width="168" height="5" fill="#FFC20E"/>
+</svg>
