@@ -1,9 +1,10 @@
 // ===== Hoja de Llamado (Call Sheet) diaria, lista para imprimir =====
 import { useState } from 'react'
 import { callSheetVacia, useProyecto, useStore } from '../store'
-import { Encabezado, Vacio, btn, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
+import { Encabezado, FirmaCasa, Greca, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
 import { fechaBonita } from '../utils'
 import { diasOrdenados, elenco, nombreLocacion, numeroDia, personasTotal, tecnicos } from '../helpers'
+import { buscarHospitales, type HospitalCercano } from '../hospitales'
 import type { CallSheet, Escena } from '../types'
 
 export default function HojaLlamado() {
@@ -53,16 +54,20 @@ export default function HojaLlamado() {
       {/* Hoja tipo papel (esto es lo que se imprime) */}
       <div className={papel}>
         {/* Encabezado de producción */}
-        <div className="bg-amber-400 text-zinc-900 rounded-t px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:rounded-none">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest">🎬 Producción</p>
-            <h2 className="text-2xl font-black leading-tight">{p.nombre}</h2>
+        <div className="bg-copal-400 text-zinc-900 rounded-t px-4 py-3 flex flex-wrap items-center justify-between gap-3 print:rounded-none">
+          <div className="flex items-center gap-3">
+            {p.logo && <img src={p.logo} alt="" className="h-12 w-auto shrink-0" />}
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest">🎬 Producción</p>
+              <h2 className="text-2xl font-black leading-tight">{p.nombre}</h2>
+            </div>
           </div>
           <div className="text-right">
             <p className="text-xl font-black">HOJA DE LLAMADO — DÍA {n} DE {dias.length}</p>
             <p className="text-sm capitalize">{fechaBonita(dia.fecha)}</p>
           </div>
         </div>
+        <Greca />
 
         <div className="border border-zinc-300 border-t-0 px-4 py-3 grid gap-3 sm:grid-cols-3">
           <div>
@@ -95,7 +100,7 @@ export default function HojaLlamado() {
             <p className="text-zinc-600">{loc?.direccion}</p>
             {loc?.direccion && (
               <a
-                className="text-amber-600 underline text-xs print:hidden"
+                className="text-copal-600 underline text-xs print:hidden"
                 href={`https://maps.google.com/?q=${encodeURIComponent(loc.direccion)}`}
                 target="_blank"
                 rel="noreferrer"
@@ -223,10 +228,11 @@ export default function HojaLlamado() {
             </span>
             <textarea className={inpPapel} rows={2} value={cs.catering} onChange={e => setCallSheet(dia.id, { catering: e.target.value })} />
           </label>
-          <label className="block text-sm">
-            <b>🏥 Hospital más cercano</b>
-            <textarea className={inpPapel} rows={2} value={cs.hospital} onChange={e => setCallSheet(dia.id, { hospital: e.target.value })} placeholder="Nombre y dirección del hospital" />
-          </label>
+          <CampoHospital
+            valor={cs.hospital}
+            direccionLocacion={loc?.direccion || ''}
+            onCambio={v => setCallSheet(dia.id, { hospital: v })}
+          />
           <label className="block text-sm">
             <b>🚑 Contactos de emergencia</b>
             <textarea className={inpPapel} rows={2} value={cs.emergencias} onChange={e => setCallSheet(dia.id, { emergencias: e.target.value })} placeholder="Bomberos, policía, médico de producción…" />
@@ -240,7 +246,89 @@ export default function HojaLlamado() {
             <textarea className={inpPapel} rows={2} value={cs.notasProduccion} onChange={e => setCallSheet(dia.id, { notasProduccion: e.target.value })} />
           </label>
         </div>
+
+        <FirmaCasa />
       </div>
     </>
+  )
+}
+
+// --- Hospital más cercano, con búsqueda automática desde la locación ---
+function CampoHospital({
+  valor,
+  direccionLocacion,
+  onCambio,
+}: {
+  valor: string
+  direccionLocacion: string
+  onCambio: (v: string) => void
+}) {
+  const [buscando, setBuscando] = useState(false)
+  const [resultados, setResultados] = useState<HospitalCercano[] | null>(null)
+  const [error, setError] = useState('')
+
+  const buscar = async () => {
+    setError('')
+    setResultados(null)
+    setBuscando(true)
+    try {
+      const encontrados = await buscarHospitales(direccionLocacion)
+      if (encontrados.length === 0)
+        setError('No encontré hospitales registrados cerca. Escríbelo a mano.')
+      setResultados(encontrados)
+    } catch {
+      setError('No se pudo consultar el mapa. Revisa tu internet o escríbelo a mano.')
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  return (
+    <label className="block text-sm">
+      <b>🏥 Hospital más cercano</b>
+      <textarea
+        className={inpPapel}
+        rows={2}
+        value={valor}
+        onChange={e => onCambio(e.target.value)}
+        placeholder="Nombre y dirección del hospital"
+      />
+
+      <div className="print:hidden mt-1">
+        {direccionLocacion ? (
+          <button type="button" onClick={buscar} disabled={buscando} className={btnSec + ' !text-xs !py-1'}>
+            {buscando ? '🔎 Buscando cerca de la locación…' : '🔎 Buscar hospitales cerca'}
+          </button>
+        ) : (
+          <p className="text-[11px] text-zinc-500">
+            Ponle dirección a la locación del día (en Locaciones) y aquí podré buscarte los hospitales cercanos.
+          </p>
+        )}
+
+        {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
+
+        {resultados && resultados.length > 0 && (
+          <div className="mt-1.5 border border-zinc-300 rounded divide-y divide-zinc-200 max-h-48 overflow-y-auto">
+            {resultados.map((h, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() =>
+                  onCambio([h.nombre, h.direccion, h.telefono && `Tel. ${h.telefono}`].filter(Boolean).join(' · '))
+                }
+                className="w-full text-left px-2 py-1.5 hover:bg-zinc-100 text-xs"
+              >
+                <span className="font-semibold">{h.nombre}</span>{' '}
+                <span className="text-zinc-500">a {h.distanciaKm} km</span>
+                {h.direccion && <span className="block text-zinc-500">{h.direccion}</span>}
+              </button>
+            ))}
+            <p className="px-2 py-1 text-[10px] text-zinc-500 bg-zinc-50">
+              Toca uno para usarlo. Datos de OpenStreetMap — confírmalos antes del rodaje.
+            </p>
+          </div>
+        )}
+      </div>
+    </label>
   )
 }

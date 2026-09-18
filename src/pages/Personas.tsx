@@ -64,7 +64,7 @@ export default function Personas() {
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-t-lg text-sm font-semibold border-b-2 ${
-              tab === t ? 'text-amber-300 border-amber-400 bg-zinc-900' : 'text-zinc-400 border-transparent hover:text-zinc-200'
+              tab === t ? 'text-copal-300 border-copal-400 bg-zinc-900' : 'text-zinc-400 border-transparent hover:text-zinc-200'
             }`}
           >
             {t === 'elenco' ? '🎭 Elenco' : '🎥 Equipo Técnico'} ({p.personas.filter(x => x.tipo === t).length})
@@ -97,11 +97,11 @@ export default function Personas() {
                   <td className={td + ' font-semibold text-zinc-100'}>{x.nombre || '—'}</td>
                   {tab === 'elenco' ? (
                     <>
-                      <td className={td + ' text-amber-300'}>{x.personaje}</td>
+                      <td className={td + ' text-copal-300'}>{x.personaje}</td>
                       <td className={td}>{x.categoria}</td>
                     </>
                   ) : (
-                    <td className={td + ' text-amber-300'}>{x.rol}</td>
+                    <td className={td + ' text-copal-300'}>{x.rol}</td>
                   )}
                   <td className={td + ' text-xs text-zinc-400'}>
                     {x.telefono && <p>📞 {x.telefono}</p>}

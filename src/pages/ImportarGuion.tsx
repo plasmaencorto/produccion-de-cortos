@@ -162,7 +162,7 @@ export default function ImportarGuion() {
             <input type="file" accept=".pdf,.txt,.fountain" className="hidden" onChange={e => leerArchivo(e.target.files)} />
           </label>
           {nombreArchivo && <span className="text-sm text-zinc-400">{nombreArchivo}</span>}
-          {cargando && <span className="text-sm text-amber-300">Leyendo el guion…</span>}
+          {cargando && <span className="text-sm text-copal-300">Leyendo el guion…</span>}
         </div>
         <p className="text-xs text-zinc-500 mt-3 mb-1">…o pega aquí el texto del guion:</p>
         <textarea
@@ -183,7 +183,7 @@ export default function ImportarGuion() {
         <div className={tarjeta + ' mb-4'}>
           <h2 className="font-semibold text-zinc-200 mb-1">2️⃣ Revisa lo que encontré</h2>
           <p className="text-sm text-zinc-400 mb-3">
-            {resultado.titulo && <>Guion: <b className="text-amber-300">{resultado.titulo}</b> · </>}
+            {resultado.titulo && <>Guion: <b className="text-copal-300">{resultado.titulo}</b> · </>}
             {resultado.escenas.length} escenas · {resultado.personajes.length} personajes ·{' '}
             {resultado.locaciones.length} locaciones ·{' '}
             {resultado.escenas.reduce((t, e) => t + e.paginas, 0).toFixed(2)} páginas aprox.
@@ -209,7 +209,7 @@ export default function ImportarGuion() {
               <tbody>
                 {resultado.escenas.map((e, i) => (
                   <tr key={i} className="border-b border-zinc-800/50">
-                    <td className={td + ' font-bold text-amber-300'}>{e.numero || i + 1}</td>
+                    <td className={td + ' font-bold text-copal-300'}>{e.numero || i + 1}</td>
                     <td className={td + ' whitespace-nowrap'}>
                       {e.intExt}. {capitalizar(e.locacion) || '—'}
                       {e.notas && <span className="block text-[11px] text-zinc-500">{e.notas}</span>}
@@ -232,17 +232,17 @@ export default function ImportarGuion() {
           <h2 className="font-semibold text-zinc-200 mb-2">3️⃣ Agregar al proyecto</h2>
           <div className="space-y-1.5 mb-3 text-sm text-zinc-300">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="accent-amber-500" checked={opciones.locaciones}
+              <input type="checkbox" className="accent-copal-500" checked={opciones.locaciones}
                 onChange={e => setOpciones({ ...opciones, locaciones: e.target.checked })} />
               Crear las locaciones en el catálogo
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="accent-amber-500" checked={opciones.personajes}
+              <input type="checkbox" className="accent-copal-500" checked={opciones.personajes}
                 onChange={e => setOpciones({ ...opciones, personajes: e.target.checked })} />
               Crear los personajes en el elenco
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="accent-amber-500" checked={opciones.presupuesto}
+              <input type="checkbox" className="accent-copal-500" checked={opciones.presupuesto}
                 onChange={e => setOpciones({ ...opciones, presupuesto: e.target.checked })} />
               Crear partidas base en el presupuesto (elenco y locaciones, en $0 para que las llenes)
             </label>

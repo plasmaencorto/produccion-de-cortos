@@ -2,9 +2,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
-import { Badge, btn, btnSec, inp, tarjeta } from '../components/ui'
+import { Badge, Greca, btn, btnSec, inp, tarjeta } from '../components/ui'
 import { descargarArchivo } from '../utils'
 import type { Proyecto } from '../types'
+// Los logos se importan para que queden dentro del archivo suelto
+// (el de doble clic) y no dependan de imágenes aparte
+import logoPlasma from '../assets/logo-plasma.png'
+import logoCopal from '../assets/logo-copal.svg'
 
 const COLOR_ESTADO: Record<string, string> = {
   'En Preproducción': 'ambar',
@@ -51,8 +55,9 @@ export default function Proyectos() {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <header className="text-center py-10">
-        <h1 className="text-4xl font-bold text-amber-400">🎬 Producción de Cortos</h1>
+        <h1 className="text-4xl font-bold text-copal-400">🎬 Producción de Cortos</h1>
         <p className="text-zinc-400 mt-2">Gestión de producción de cortometrajes: desglose, presupuesto, plan de rodaje y más</p>
+        <Greca className="mt-5 max-w-sm mx-auto" />
       </header>
 
       <div className="flex flex-wrap gap-2 mb-8 justify-center">
@@ -75,8 +80,8 @@ export default function Proyectos() {
       {/* Cuando la app se usa por internet conviene aclarar dónde quedan los datos,
           porque cada quien los guarda en su propio navegador */}
       {enInternet && (
-        <div className="max-w-2xl mx-auto mb-8 bg-amber-500/10 border border-amber-700/60 rounded-xl px-4 py-3 text-sm">
-          <p className="text-amber-200 font-semibold mb-1">📍 Cómo se guardan tus proyectos</p>
+        <div className="max-w-2xl mx-auto mb-8 bg-copal-500/10 border border-copal-700/60 rounded-xl px-4 py-3 text-sm">
+          <p className="text-copal-200 font-semibold mb-1">📍 Cómo se guardan tus proyectos</p>
           <p className="text-zinc-300">
             Todo se guarda <b>en este navegador y en este dispositivo</b> — nadie más ve tus proyectos, ni siquiera
             nosotros. Por eso: si vas a cambiar de computadora o de celular, usa el botón{' '}
@@ -94,7 +99,7 @@ export default function Proyectos() {
         {proyectos.map(p => (
           <div key={p.id} className={tarjeta + ' flex flex-col gap-2'}>
             <div className="flex items-start justify-between gap-2">
-              <Link to={`/p/${p.id}`} className="font-bold text-lg text-zinc-100 hover:text-amber-300">
+              <Link to={`/p/${p.id}`} className="font-bold text-lg text-zinc-100 hover:text-copal-300">
                 {p.nombre}
               </Link>
               <Badge color={COLOR_ESTADO[p.estado]}>{p.estado}</Badge>
@@ -132,12 +137,12 @@ export default function Proyectos() {
         <p className="text-xs text-zinc-500 uppercase tracking-widest">Una herramienta de</p>
         <div className="flex flex-wrap items-center justify-center gap-8">
           <img
-            src="./logo-plasma.png"
+            src={logoPlasma}
             alt="Plasma en Corto — Centro Cinematográfico de la Laguna"
             className="h-16 sm:h-20 w-auto opacity-90 hover:opacity-100 transition-opacity"
           />
           <img
-            src="./logo-copal.svg"
+            src={logoCopal}
             alt="Olor a Copal"
             className="h-16 sm:h-20 w-auto opacity-90 hover:opacity-100 transition-opacity"
           />

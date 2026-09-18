@@ -59,7 +59,7 @@ export default function Equipamiento() {
         if (lista.length === 0) return null
         return (
           <div key={dep} className="mb-6">
-            <h2 className="font-semibold text-amber-300 mb-2">{dep}</h2>
+            <h2 className="font-semibold text-copal-300 mb-2">{dep}</h2>
             <div className="overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-xl">
               <table className="w-full min-w-[800px]">
                 <thead>

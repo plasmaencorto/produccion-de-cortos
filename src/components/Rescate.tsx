@@ -37,7 +37,7 @@ export default class Rescate extends Component<Props, Estado> {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-lg bg-zinc-900 border border-zinc-700 rounded-xl p-6">
-          <h1 className="text-2xl font-bold text-amber-400 mb-2">🎬 Algo se atoró</h1>
+          <h1 className="text-2xl font-bold text-copal-400 mb-2">🎬 Algo se atoró</h1>
           <p className="text-zinc-300 text-sm mb-4">
             La app no pudo mostrar esta pantalla, pero <b>tus proyectos siguen guardados</b>. Antes que nada, descarga un
             respaldo para tenerlo a salvo; luego intenta volver al inicio.

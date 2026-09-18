@@ -19,6 +19,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), ...(paraWeb ? [] : [viteSingleFile()])],
   build: {
     outDir: paraWeb ? 'dist-web' : 'dist',
+    // En el archivo suelto las imágenes van incrustadas dentro del HTML,
+    // para que funcione sin archivos alrededor. En el sitio web van aparte,
+    // que así el navegador las guarda en caché.
+    assetsInlineLimit: paraWeb ? 4096 : 100 * 1024 * 1024,
     // En la versión web sí conviene partir el código en trozos:
     // el lector de guiones en PDF (pesado) se descarga solo cuando se usa
     chunkSizeWarningLimit: 2000,

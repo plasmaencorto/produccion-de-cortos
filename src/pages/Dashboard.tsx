@@ -1,8 +1,8 @@
 // ===== Dashboard: vista general del proyecto =====
 import { Link } from 'react-router-dom'
 import { useProyecto, useStore } from '../store'
-import { Badge, Campo, Encabezado, inp, tarjeta } from '../components/ui'
-import { dinero, fechaBonita } from '../utils'
+import { Badge, Campo, Encabezado, btnSec, inp, tarjeta } from '../components/ui'
+import { archivoAImagen, dinero, fechaBonita } from '../utils'
 import {
   diasOrdenados,
   elenco,
@@ -108,17 +108,49 @@ export default function Dashboard() {
             <input type="date" className={inp} value={p.finRodaje} onChange={e => actualizar({ finRodaje: e.target.value })} />
           </Campo>
         </div>
+
+        {/* Logotipo de la producción: sale en las hojas de llamado y reportes */}
+        <div className="mt-4 pt-4 border-t border-zinc-800 flex flex-wrap items-center gap-4">
+          {p.logo ? (
+            <img src={p.logo} alt="Logotipo de la producción" className="h-14 w-auto bg-zinc-800 rounded p-1" />
+          ) : (
+            <div className="h-14 w-24 bg-zinc-800 rounded flex items-center justify-center text-2xl">🏷</div>
+          )}
+          <div>
+            <p className="text-sm text-zinc-300 font-semibold">Logotipo de la producción</p>
+            <p className="text-xs text-zinc-500 mb-2">Aparecerá en tus hojas de llamado y reportes impresos.</p>
+            <div className="flex flex-wrap gap-2">
+              <label className={btnSec + ' !text-xs'}>
+                📷 {p.logo ? 'Cambiar' : 'Subir'} logotipo
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async e => {
+                    const f = e.target.files?.[0]
+                    if (f) actualizar({ logo: await archivoAImagen(f, 500) })
+                  }}
+                />
+              </label>
+              {p.logo && (
+                <button className={btnSec + ' !text-xs'} onClick={() => actualizar({ logo: '' })}>
+                  Quitar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Progreso de escenas */}
         <div className={tarjeta}>
           <h2 className="font-semibold text-zinc-200 mb-2">🎬 Progreso de rodaje</h2>
-          <p className="text-3xl font-bold text-amber-400">
+          <p className="text-3xl font-bold text-copal-400">
             {filmadas} <span className="text-base font-normal text-zinc-400">de {p.escenas.length} escenas filmadas</span>
           </p>
           <div className="h-3 bg-zinc-800 rounded-full mt-3 overflow-hidden">
-            <div className="h-full bg-amber-500 transition-all" style={{ width: pct + '%' }} />
+            <div className="h-full bg-copal-500 transition-all" style={{ width: pct + '%' }} />
           </div>
           <p className="text-xs text-zinc-400 mt-1">{pct}% completado</p>
         </div>
@@ -140,7 +172,7 @@ export default function Dashboard() {
               <p className={`text-lg font-bold ${dif < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{dinero(dif)}</p>
             </div>
           </div>
-          <Link to={`/p/${p.id}/presupuesto`} className="block text-xs text-amber-400 hover:underline mt-3">
+          <Link to={`/p/${p.id}/presupuesto`} className="block text-xs text-copal-400 hover:underline mt-3">
             Ver presupuesto completo →
           </Link>
         </div>
@@ -150,7 +182,7 @@ export default function Dashboard() {
           <h2 className="font-semibold text-zinc-200 mb-2">👥 Personal de la producción</h2>
           <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
             <div>
-              <p className="text-3xl font-bold text-amber-400">
+              <p className="text-3xl font-bold text-copal-400">
                 {gentePresupuesto} <span className="text-base font-normal text-zinc-400">personas en presupuesto</span>
               </p>
               <p className="text-xs text-zinc-400 mt-0.5">
@@ -179,7 +211,7 @@ export default function Dashboard() {
               </ul>
               <p className="text-[11px] text-zinc-500 mt-2">
                 🍽 Sirve para pedir catering, radios y transporte. Ver el detalle en{' '}
-                <Link to={`/p/${p.id}/reportes?tipo=personal`} className="text-amber-400 hover:underline">
+                <Link to={`/p/${p.id}/reportes?tipo=personal`} className="text-copal-400 hover:underline">
                   Reportes → Plantilla de personal
                 </Link>
                 .
@@ -203,7 +235,7 @@ export default function Dashboard() {
               </li>
             ))}
           </ul>
-          <Link to={`/p/${p.id}/plan`} className="block text-xs text-amber-400 hover:underline mt-3">
+          <Link to={`/p/${p.id}/plan`} className="block text-xs text-copal-400 hover:underline mt-3">
             Ver plan de rodaje →
           </Link>
         </div>

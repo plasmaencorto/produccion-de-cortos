@@ -1,6 +1,36 @@
 @import "tailwindcss";
 
-/* Tema oscuro de cine con acentos ámbar */
+/* ===== Paleta de la casa =====
+   Tomada de los logotipos de Olor a Copal y Plasma en Corto:
+   amarillo copal, rosa mexicano y turquesa. Sobre fondo oscuro,
+   con grecas como guiño autóctono. */
+@theme {
+  /* Amarillo copal: el acento principal */
+  --color-copal-100: #fff4d1;
+  --color-copal-200: #ffe8a3;
+  --color-copal-300: #ffd75c;
+  --color-copal-400: #ffc92e;
+  --color-copal-500: #ffc20e;
+  --color-copal-600: #d19a00;
+  --color-copal-700: #9e7400;
+
+  /* Rosa mexicano */
+  --color-rosa-100: #fde7f1;
+  --color-rosa-300: #f890bc;
+  --color-rosa-400: #f4589a;
+  --color-rosa-500: #ec0e73;
+  --color-rosa-600: #c70b60;
+  --color-rosa-700: #9e0a4d;
+
+  /* Turquesa */
+  --color-turquesa-100: #d6f4f8;
+  --color-turquesa-300: #6fdcea;
+  --color-turquesa-400: #22c6db;
+  --color-turquesa-500: #00b3c8;
+  --color-turquesa-600: #0092a3;
+  --color-turquesa-700: #00707d;
+}
+
 html {
   color-scheme: dark;
 }
@@ -18,5 +48,10 @@ body {
   body {
     background: white;
     color: black;
+  }
+  /* que las grecas y los logos sí salgan impresos */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

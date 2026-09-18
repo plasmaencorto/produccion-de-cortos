@@ -75,7 +75,7 @@ export default function Gastos() {
         </div>
         <div className={tarjeta + ' text-center'}>
           <p className="text-xs text-zinc-400">Comprobado</p>
-          <p className="text-xl font-bold text-amber-300">{dinero(totComprobado)}</p>
+          <p className="text-xl font-bold text-copal-300">{dinero(totComprobado)}</p>
         </div>
         <div className={tarjeta + ' text-center'}>
           <p className="text-xs text-zinc-400">Daños y pérdidas</p>
@@ -90,7 +90,7 @@ export default function Gastos() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`px-3 py-2 rounded-t-lg text-sm font-semibold border-b-2 ${
-              tab === t.id ? 'text-amber-300 border-amber-400 bg-zinc-900' : 'text-zinc-400 border-transparent hover:text-zinc-200'
+              tab === t.id ? 'text-copal-300 border-copal-400 bg-zinc-900' : 'text-zinc-400 border-transparent hover:text-zinc-200'
             }`}
           >
             {t.nombre}
@@ -158,7 +158,7 @@ function TablaSolicitudes({ p, solicitudes }: { p: Proyecto; solicitudes: Solici
               {solicitudes.map(s => (
                 <tr key={s.id} className="border-b border-zinc-800/60 hover:bg-zinc-800/40 cursor-pointer"
                   onClick={() => { setEditando(s); setEsNueva(false) }}>
-                  <td className={td + ' font-bold text-amber-300 whitespace-nowrap'}>
+                  <td className={td + ' font-bold text-copal-300 whitespace-nowrap'}>
                     {s.folio} {s.urgente && <span title="Urgente">⚡</span>}
                   </td>
                   <td className={td + ' whitespace-nowrap'}>{s.fecha}</td>
@@ -209,15 +209,15 @@ function EditorSolicitud({ inicial, esNueva, onGuardar, onCerrar }: {
         <Campo etiqueta="Subtotal (sin IVA)"><input type="number" className={inp} value={b.subtotal || ''} onChange={e => set({ subtotal: num(e.target.value) })} /></Campo>
         <div className="md:col-span-3 flex flex-wrap gap-5 text-sm text-zinc-300">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="accent-amber-500" checked={b.iva} onChange={e => set({ iva: e.target.checked })} />
+            <input type="checkbox" className="accent-copal-500" checked={b.iva} onChange={e => set({ iva: e.target.checked })} />
             Causa IVA (16%) {b.iva && <span className="text-zinc-400">→ total {dinero(totalSolicitud(b))}</span>}
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="accent-amber-500" checked={b.urgente} onChange={e => set({ urgente: e.target.checked })} />
+            <input type="checkbox" className="accent-copal-500" checked={b.urgente} onChange={e => set({ urgente: e.target.checked })} />
             ⚡ Urgente
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="accent-amber-500" checked={b.comprobar} onChange={e => set({ comprobar: e.target.checked })} />
+            <input type="checkbox" className="accent-copal-500" checked={b.comprobar} onChange={e => set({ comprobar: e.target.checked })} />
             Gastos a comprobar
           </label>
         </div>
@@ -373,7 +373,7 @@ function EditorGasto({ inicial, esNuevo, solicitudes, onGuardar, onCerrar }: {
         </Campo>
         <div className="md:col-span-2 flex items-center gap-5 text-sm text-zinc-300">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="accent-amber-500" checked={b.deducible} onChange={e => set({ deducible: e.target.checked })} />
+            <input type="checkbox" className="accent-copal-500" checked={b.deducible} onChange={e => set({ deducible: e.target.checked })} />
             Deducible (con factura)
           </label>
           <span className="text-zinc-400">Total: <b className="text-zinc-100">{dinero(totalGasto(b))}</b></span>

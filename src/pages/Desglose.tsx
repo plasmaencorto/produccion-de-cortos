@@ -126,7 +126,7 @@ export default function Desglose() {
               {escenas.map(e => (
                 <tr key={e.id} className="border-b border-zinc-800/60 hover:bg-zinc-800/40 cursor-pointer"
                   onClick={() => { setEditando(e); setEsNueva(false) }}>
-                  <td className={td + ' font-bold text-amber-300 whitespace-nowrap'}>{e.numero || '—'}</td>
+                  <td className={td + ' font-bold text-copal-300 whitespace-nowrap'}>{e.numero || '—'}</td>
                   <td className={td}>{e.intExt}</td>
                   <td className={td}>{nombreEsc(e) || '—'}</td>
                   <td className={td}>{e.momento}</td>
@@ -237,7 +237,7 @@ function EditorEscena({
                   onClick={() => togglePersonaje(x.id)}
                   className={`text-xs px-2.5 py-1 rounded-full border ${
                     b.personajeIds.includes(x.id)
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                      ? 'bg-copal-500/20 border-copal-500 text-copal-300'
                       : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'
                   }`}
                 >

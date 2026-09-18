@@ -66,7 +66,7 @@ export default function Locaciones() {
               </div>
               <p className="text-xs text-zinc-400">{l.tipo} · {l.direccion || 'Sin dirección'}</p>
               {l.costo > 0 && <p className="text-xs text-zinc-300">💰 {dinero(l.costo)} {l.unidadCosto}</p>}
-              {escenasDe(l.id) && <p className="text-xs text-amber-300/80">🎬 Escenas: {escenasDe(l.id)}</p>}
+              {escenasDe(l.id) && <p className="text-xs text-copal-300/80">🎬 Escenas: {escenasDe(l.id)}</p>}
               <div className="flex gap-1.5 mt-auto pt-2">
                 <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => { setEditando(l); setEsNueva(false) }}>
                   Editar

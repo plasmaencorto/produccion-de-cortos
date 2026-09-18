@@ -47,7 +47,7 @@ export default function Buscador({ proyecto }: { proyecto: Proyecto }) {
         value={q}
         onChange={e => setQ(e.target.value)}
         placeholder="🔍 Buscar en el proyecto…"
-        className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500"
+        className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-copal-500"
       />
       {t.length >= 2 && (
         <div className="absolute z-40 mt-1 w-72 max-h-80 overflow-y-auto bg-zinc-800 border border-zinc-600 rounded-lg shadow-xl">
@@ -59,7 +59,7 @@ export default function Buscador({ proyecto }: { proyecto: Proyecto }) {
               onClick={() => setQ('')}
               className="block px-3 py-2 hover:bg-zinc-700 text-xs"
             >
-              <span className="text-amber-400">{r.tipo}:</span>{' '}
+              <span className="text-copal-400">{r.tipo}:</span>{' '}
               <span className="text-zinc-200">{r.texto}</span>
             </Link>
           ))}

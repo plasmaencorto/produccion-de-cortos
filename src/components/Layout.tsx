@@ -44,13 +44,13 @@ export default function Layout() {
         <div className="p-3 flex items-center gap-2">
           <button
             onClick={() => setAbierto(!abierto)}
-            className="text-zinc-400 hover:text-amber-400 text-lg shrink-0"
+            className="text-zinc-400 hover:text-copal-400 text-lg shrink-0"
             title="Mostrar / ocultar menú"
           >
             ☰
           </button>
           {abierto && (
-            <Link to="/" className="text-amber-400 font-bold truncate hover:underline" title="Volver a mis proyectos">
+            <Link to="/" className="text-copal-400 font-bold truncate hover:underline" title="Volver a mis proyectos">
               🎬 {proyecto.nombre}
             </Link>
           )}
@@ -71,7 +71,7 @@ export default function Layout() {
               onClick={() => enCelular() && setAbierto(false)}
               className={({ isActive }) =>
                 `flex items-center gap-2.5 rounded px-2.5 py-2 text-sm ${
-                  isActive ? 'bg-amber-500/15 text-amber-300 font-semibold' : 'text-zinc-300 hover:bg-zinc-800'
+                  isActive ? 'bg-copal-500/15 text-copal-300 font-semibold' : 'text-zinc-300 hover:bg-zinc-800'
                 }`
               }
             >
@@ -89,7 +89,7 @@ export default function Layout() {
               type="checkbox"
               checked={soloLectura}
               onChange={e => setSoloLectura(e.target.checked)}
-              className="accent-amber-500"
+              className="accent-copal-500"
             />
             {abierto && <span>Modo solo lectura</span>}
           </label>
@@ -99,7 +99,7 @@ export default function Layout() {
 
       <main className="flex-1 min-w-0">
         {soloLectura && (
-          <div className="bg-amber-500/15 text-amber-300 text-center text-sm py-1.5 print:hidden">
+          <div className="bg-copal-500/15 text-copal-300 text-center text-sm py-1.5 print:hidden">
             🔒 Modo solo lectura: los cambios están desactivados
           </div>
         )}

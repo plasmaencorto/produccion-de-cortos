@@ -78,7 +78,7 @@ export default function Presupuesto() {
         </div>
         <div className={tarjeta + ' text-center'}>
           <p className="text-xs text-zinc-400">Total estimado (con IVA)</p>
-          <p className="text-xl font-bold text-amber-300">{dinero(tot.estimado)}</p>
+          <p className="text-xl font-bold text-copal-300">{dinero(tot.estimado)}</p>
         </div>
         <div className={tarjeta + ' text-center'}>
           <p className="text-xs text-zinc-400">Total gastado</p>
@@ -146,7 +146,7 @@ function Categoria({
           {categoria}
         </span>
         <span className="text-xs text-zinc-400 whitespace-nowrap">
-          {esPersonal && gente > 0 && <span className="text-amber-300/80 mr-2">👥 {gente}</span>}
+          {esPersonal && gente > 0 && <span className="text-copal-300/80 mr-2">👥 {gente}</span>}
           Total {dinero(t.estimado)} · Gastado {dinero(t.real)} <span className="ml-1">{abierta ? '▾' : '▸'}</span>
         </span>
       </button>
@@ -171,9 +171,9 @@ function Categoria({
                 return (
                   <Fragment key={sub}>
                     <tr className="bg-zinc-800/40">
-                      <td colSpan={esPersonal ? 13 : 12} className="px-2 py-1 text-xs font-semibold text-amber-300/90">{sub}</td>
+                      <td colSpan={esPersonal ? 13 : 12} className="px-2 py-1 text-xs font-semibold text-copal-300/90">{sub}</td>
                       <td className="px-2 py-1 text-right">
-                        <button onClick={() => onAgregar(categoria, sub)} className="text-amber-400 hover:text-amber-300 text-xs whitespace-nowrap">
+                        <button onClick={() => onAgregar(categoria, sub)} className="text-copal-400 hover:text-copal-300 text-xs whitespace-nowrap">
                           + línea
                         </button>
                       </td>
@@ -214,7 +214,7 @@ function Categoria({
                           <td className={td + ' text-right whitespace-nowrap text-zinc-300'}>{dinero(sub$)}</td>
                           <td className={td + ' whitespace-nowrap'} title="¿Esta línea causa IVA (16%)?">
                             <label className="flex items-center gap-1 cursor-pointer text-xs text-zinc-400">
-                              <input type="checkbox" className="accent-amber-500" checked={!!l.iva}
+                              <input type="checkbox" className="accent-copal-500" checked={!!l.iva}
                                 onChange={e => actualizar('presupuesto', l.id, { iva: e.target.checked })} />
                               {l.iva ? dinero(iva$) : '—'}
                             </label>
@@ -251,7 +251,7 @@ function Categoria({
                 {esPersonal ? (
                   <>
                     <td colSpan={3} />
-                    <td className={td + ' font-bold text-amber-300 whitespace-nowrap'} title="Personas de esta cuenta">
+                    <td className={td + ' font-bold text-copal-300 whitespace-nowrap'} title="Personas de esta cuenta">
                       👥 {gente}
                     </td>
                     <td />
@@ -261,7 +261,7 @@ function Categoria({
                 )}
                 <td className={td + ' text-right font-bold text-zinc-100 whitespace-nowrap'}>{dinero(t.subtotal)}</td>
                 <td className={td + ' text-right font-bold text-zinc-300 whitespace-nowrap'}>{dinero(t.iva)}</td>
-                <td className={td + ' text-right font-bold text-amber-300 whitespace-nowrap'}>{dinero(t.estimado)}</td>
+                <td className={td + ' text-right font-bold text-copal-300 whitespace-nowrap'}>{dinero(t.estimado)}</td>
                 <td className={td + ' text-right font-bold text-zinc-100 whitespace-nowrap'}>{dinero(t.real)}</td>
                 <td className={`${td} text-right font-bold whitespace-nowrap ${t.estimado - t.real < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                   {dinero(t.estimado - t.real)}

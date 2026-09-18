@@ -114,7 +114,7 @@ export default function PlanRodaje() {
                   className="bg-zinc-800/70 border border-zinc-700 rounded px-2 py-1.5 cursor-grab text-xs"
                   title="Arrastra esta escena a un día de rodaje"
                 >
-                  <span className="text-amber-300 font-semibold">Esc. {e.numero}</span>{' '}
+                  <span className="text-copal-300 font-semibold">Esc. {e.numero}</span>{' '}
                   <span className="text-zinc-400">{e.intExt} · {e.momento}</span>
                   <p className="text-zinc-400 truncate">{e.sinopsis}</p>
                 </div>
@@ -157,7 +157,7 @@ function TarjetaDia({
       }}
     >
       <div className="flex flex-wrap items-center gap-3 mb-3">
-        <span className="text-amber-400 font-bold text-lg">Día {numero}</span>
+        <span className="text-copal-400 font-bold text-lg">Día {numero}</span>
         <input
           type="date"
           className={inp + ' !w-auto'}
@@ -216,7 +216,7 @@ function TarjetaDia({
             className="flex items-center gap-2 bg-zinc-800/70 border border-zinc-700 rounded px-2 py-1.5 cursor-grab"
           >
             <span className="text-zinc-500">⠿</span>
-            <span className="text-amber-300 font-semibold text-sm whitespace-nowrap">Esc. {e.numero}</span>
+            <span className="text-copal-300 font-semibold text-sm whitespace-nowrap">Esc. {e.numero}</span>
             <span className="text-xs text-zinc-400 whitespace-nowrap">{e.intExt} · {e.momento}</span>
             <span className="text-xs text-zinc-300 truncate flex-1">{e.sinopsis}</span>
             {dobles.has(e.id) && <Badge color="rojo">⚠ en 2+ días</Badge>}
@@ -287,13 +287,13 @@ function Calendario({ p, dias }: { p: Proyecto; dias: DiaRodaje[] }) {
                 <div
                   key={f}
                   className={`min-h-24 rounded-lg border p-1.5 ${
-                    dr ? 'border-amber-600/60 bg-amber-500/10' : 'border-zinc-800 bg-zinc-900/50'
+                    dr ? 'border-copal-600/60 bg-copal-500/10' : 'border-zinc-800 bg-zinc-900/50'
                   }`}
                 >
                   <p className="text-[11px] text-zinc-500">{format(fecha, 'd MMM', { locale: es })}</p>
                   {dr && (
                     <>
-                      <p className="text-xs font-bold text-amber-300">Día {numeroDia(p, dr.id)}</p>
+                      <p className="text-xs font-bold text-copal-300">Día {numeroDia(p, dr.id)}</p>
                       <p className="text-[11px] text-zinc-300 truncate">{nombreLocacion(p, dr.locacionId) || 'Sin locación'}</p>
                       <p className="text-[11px] text-zinc-400">{dr.escenaIds.length} escena(s)</p>
                       <p className="text-[11px] text-zinc-500">{dr.horaInicio}–{dr.horaFin}</p>

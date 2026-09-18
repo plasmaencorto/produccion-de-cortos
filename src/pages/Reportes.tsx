@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useProyecto, useStore } from '../store'
-import { Encabezado, Vacio, btn, btnSec, inp, papel, tdPapel, thPapel } from '../components/ui'
+import { Encabezado, FirmaCasa, Greca, Vacio, btn, btnSec, inp, papel, tdPapel, thPapel } from '../components/ui'
 import { aCSV, descargarArchivo, dinero, fechaBonita } from '../utils'
 import {
   categoriasExtra,
@@ -118,7 +118,7 @@ export default function Reportes() {
             onClick={() => setTipo(t.id)}
             className={`px-3 py-1.5 rounded-lg text-sm border ${
               tipo === t.id
-                ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-semibold'
+                ? 'bg-copal-500/20 border-copal-500 text-copal-300 font-semibold'
                 : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500'
             }`}
           >
@@ -135,6 +135,7 @@ export default function Reportes() {
         {tipo === 'contactos' && <ReporteContactos p={p} />}
         {tipo === 'personal' && <ReportePersonal p={p} />}
         {tipo === 'plan' && <ReportePlan p={p} />}
+        <FirmaCasa />
       </div>
     </>
   )
@@ -142,14 +143,20 @@ export default function Reportes() {
 
 function CabeceraReporte({ p, titulo }: { p: Proyecto; titulo: string }) {
   return (
-    <div className="border-b-4 border-amber-400 pb-3 mb-5 flex flex-wrap items-end justify-between gap-2">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">🎬 {p.nombre}</p>
-        <h2 className="text-2xl font-black">{titulo}</h2>
+    <div className="pb-3 mb-5">
+      <div className="flex flex-wrap items-end justify-between gap-2 mb-2">
+        <div className="flex items-center gap-3">
+          {p.logo && <img src={p.logo} alt="" className="h-12 w-auto shrink-0" />}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">🎬 {p.nombre}</p>
+            <h2 className="text-2xl font-black">{titulo}</h2>
+          </div>
+        </div>
+        <p className="text-xs text-zinc-500">
+          Generado el {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
       </div>
-      <p className="text-xs text-zinc-500">
-        Generado el {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
-      </p>
+      <Greca />
     </div>
   )
 }
@@ -180,7 +187,7 @@ function ReportePresupuesto({ p }: { p: Proyecto }) {
               </tr>
             )
           })}
-          <tr className="bg-amber-100">
+          <tr className="bg-copal-100">
             <td className={tdPapel + ' font-black'}>GRAN TOTAL</td>
             <td className={tdPapel + ' text-right font-black'}>{dinero(tot.subtotal)}</td>
             <td className={tdPapel + ' text-right font-black'}>{dinero(tot.iva)}</td>
@@ -395,7 +402,7 @@ function ReportePersonal({ p }: { p: Proyecto }) {
               <td className={tdPapel + ' text-right'}>{x.personas * (dias || 1)}</td>
             </tr>
           ))}
-          <tr className="bg-amber-100">
+          <tr className="bg-copal-100">
             <td className={tdPapel + ' font-black'}>TOTAL</td>
             <td className={tdPapel + ' text-right font-black'}>{total}</td>
             <td className={tdPapel + ' text-right font-black'}>{total}</td>

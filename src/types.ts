@@ -197,6 +197,7 @@ export interface Proyecto {
   director: string
   productor: string
   primerAD: string
+  logo?: string // logotipo de la producción, para las hojas de llamado y reportes
   inicioRodaje: string
   finRodaje: string
   estado: EstadoProyecto
