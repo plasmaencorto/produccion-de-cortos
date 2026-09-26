@@ -133,6 +133,8 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
   // Uso de la obra: cada producción elige si la cesión incluye la explotación comercial
   const [comercial, setComercial] = useState(false)
   const [porcentaje, setPorcentaje] = useState('')
+  // La participación en ganancias es para quien interpreta; al equipo técnico por lo general no le aplica
+  const [sinPorcentaje, setSinPorcentaje] = useState(personas[0]?.tipo === 'tecnico')
   const x = personas.find(y => y.id === id)
 
   if (personas.length === 0)
@@ -142,6 +144,7 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
     setId(nuevo)
     const y = personas.find(z => z.id === nuevo)
     setMenor(false)
+    setSinPorcentaje(y?.tipo === 'tecnico')
     setMonto(pagoSugerido(y))
     setGratuito(!pagoSugerido(y))
   }
@@ -180,19 +183,32 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
         </Campo>
         {comercial && (
           <Campo etiqueta="Participación en ganancias (%)" className="md:col-span-2">
-            <input
-              className={inp}
-              value={porcentaje}
-              onChange={e => setPorcentaje(e.target.value.replace(/[^\d.]/g, ''))}
-              placeholder="Déjalo vacío para llenarlo a mano en la firma"
-            />
+            <div className="flex items-center gap-3">
+              <input
+                className={inp + ' disabled:opacity-40'}
+                value={sinPorcentaje ? '' : porcentaje}
+                disabled={sinPorcentaje}
+                onChange={e => setPorcentaje(e.target.value.replace(/[^\d.]/g, ''))}
+                placeholder={sinPorcentaje ? 'No aplica' : 'Déjalo vacío para llenarlo a mano en la firma'}
+              />
+              <label className="flex items-center gap-2 text-sm text-zinc-300 whitespace-nowrap cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="accent-copal-500"
+                  checked={sinPorcentaje}
+                  onChange={e => setSinPorcentaje(e.target.checked)}
+                />
+                No aplica
+              </label>
+            </div>
           </Campo>
         )}
         {comercial && (
           <p className="md:col-span-4 bg-red-900/20 border border-red-800/70 text-red-200 text-xs rounded-lg px-3 py-2">
-            ⚠️ Con uso comercial, la persona debe saber desde el principio que el corto podría venderse, y la ley le da
-            derecho a una parte de lo que gane (art. 117 bis de la Ley Federal del Derecho de Autor). Revísalo con un
-            abogado antes de firmar{menor ? ', sobre todo porque firma una persona menor de edad' : ''}.
+            ⚠️ Con uso comercial, la persona debe saber desde el principio que el corto podría venderse. A quien actúa,
+            la ley le da derecho a una parte de lo que gane (art. 117 bis de la Ley Federal del Derecho de Autor)
+            {sinPorcentaje && x?.tipo === 'elenco' ? ', aunque aquí marques «No aplica»' : ''}. Revísalo con un abogado
+            antes de firmar{menor ? ', sobre todo porque firma una persona menor de edad' : ''}.
           </p>
         )}
         <Campo etiqueta="Vigencia">
@@ -281,12 +297,20 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
                 plataformas digitales, televisoras, distribuidoras y exhibidores, y las funciones con cobro de entrada,
                 por los mismos medios, territorio y vigencia señalados en el punto anterior.
               </li>
-              <li>
-                Que, por dicha explotación comercial, {menor ? 'la persona menor a mi cargo recibirá' : 'recibiré'} una
-                participación del <D>{porcentaje ? `${porcentaje}%` : ''}</D> de los ingresos netos que obtenga la
-                Producción, conforme al artículo 117 bis de la Ley Federal del Derecho de Autor. La Producción informará
-                por escrito de cualquier acuerdo de venta o licencia de la Obra y de los ingresos que genere.
-              </li>
+              {sinPorcentaje ? (
+                <li>
+                  Que por dicha explotación comercial no se pacta una participación en los ingresos, sin perjuicio de
+                  los derechos que, en su caso, otorga la Ley Federal del Derecho de Autor. La Producción informará por
+                  escrito de cualquier acuerdo de venta o licencia de la Obra.
+                </li>
+              ) : (
+                <li>
+                  Que, por dicha explotación comercial, {menor ? 'la persona menor a mi cargo recibirá' : 'recibiré'} una
+                  participación del <D>{porcentaje ? `${porcentaje}%` : ''}</D> de los ingresos netos que obtenga la
+                  Producción, conforme al artículo 117 bis de la Ley Federal del Derecho de Autor. La Producción
+                  informará por escrito de cualquier acuerdo de venta o licencia de la Obra y de los ingresos que genere.
+                </li>
+              )}
             </>
           ) : (
             <li>
