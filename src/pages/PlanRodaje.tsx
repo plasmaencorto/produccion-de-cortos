@@ -7,6 +7,14 @@ import { Badge, Campo, Encabezado, Vacio, btn, btnPeligro, btnSec, inp, tarjeta 
 import { uid } from '../utils'
 import { alertaJornada, diasOrdenados, escenasEnVariosDias, escenasSinAsignar, nombreLocacion, numeroDia } from '../helpers'
 import type { DiaRodaje, Escena, Proyecto } from '../types'
+import TiraProduccion from '../components/TiraProduccion'
+
+const VISTAS = [
+  { id: 'lista', nombre: '📋 Lista' },
+  { id: 'tira', nombre: '🎞 Tira de producción' },
+  { id: 'calendario', nombre: '📆 Calendario' },
+] as const
+type Vista = (typeof VISTAS)[number]['id']
 
 // Lee los datos de la escena que se está arrastrando
 const leerDrag = (ev: React.DragEvent): { escenaId: string; origen: string | null } | null => {
@@ -22,7 +30,7 @@ export default function PlanRodaje() {
   const agregar = useStore(s => s.agregar)
   const actualizar = useStore(s => s.actualizar)
   const mutarActivo = useStore(s => s.mutarActivo)
-  const [vista, setVista] = useState<'lista' | 'calendario'>('lista')
+  const [vista, setVista] = useState<Vista>('lista')
   if (!p) return null
 
   const dias = diasOrdenados(p)
@@ -68,11 +76,29 @@ export default function PlanRodaje() {
   return (
     <>
       <Encabezado titulo="Plan de Rodaje" subtitulo="Arrastra escenas entre días para organizarlas">
-        <button className={btnSec} onClick={() => setVista(vista === 'lista' ? 'calendario' : 'lista')}>
-          {vista === 'lista' ? '📆 Ver calendario' : '📋 Ver lista'}
-        </button>
+        <div className="inline-flex rounded-lg border border-zinc-700 overflow-hidden">
+          {VISTAS.map(v => (
+            <button
+              key={v.id}
+              onClick={() => setVista(v.id)}
+              className={`px-3 py-1.5 text-sm cursor-pointer ${
+                vista === v.id ? 'bg-copal-500/20 text-copal-300 font-semibold' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+              }`}
+            >
+              {v.nombre}
+            </button>
+          ))}
+        </div>
+        {vista === 'tira' && (
+          <button className={btnSec} onClick={() => window.print()}>🖨 Imprimir tira</button>
+        )}
         <button className={btn} onClick={agregarDia}>+ Agregar día de rodaje</button>
       </Encabezado>
+
+      {/* Título que solo sale en papel */}
+      <h1 className="hidden print:block text-xl font-black mb-3">
+        {p.nombre} — {vista === 'tira' ? 'Tira de producción' : 'Plan de rodaje'}
+      </h1>
 
       {dobles.size > 0 && (
         <div className="bg-red-900/30 border border-red-800 text-red-300 text-sm rounded-lg px-3 py-2 mb-4">
@@ -83,6 +109,12 @@ export default function PlanRodaje() {
 
       {vista === 'calendario' ? (
         <Calendario p={p} dias={dias} />
+      ) : vista === 'tira' ? (
+        dias.length === 0 && p.escenas.length === 0 ? (
+          <Vacio mensaje="Aún no hay escenas ni días de rodaje. Importa tu guion o agrega escenas en el Desglose." />
+        ) : (
+          <TiraProduccion p={p} dias={dias} sinAsignar={sinAsignar} onMover={moverEscena} onQuitar={quitarEscena} />
+        )
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_280px] items-start">
           {/* Columna de días */}

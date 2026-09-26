@@ -100,6 +100,21 @@ export function semaforo(estimado: number, real: number): 'verde' | 'amarillo' |
   return r > 1 ? 'rojo' : r >= 0.8 ? 'amarillo' : 'verde'
 }
 
+// Número de un personaje en el elenco (1, 2, 3…), como se usa en la hoja de
+// llamado y la tira de producción; 0 si no es del elenco
+export const numeroPersonaje = (p: Proyecto, personaId: string) =>
+  p.personas.filter(x => x.tipo === 'elenco').findIndex(x => x.id === personaId) + 1
+
+// Páginas de guión en octavos, como se cuentan en la industria: 1.5 -> "1 4/8"
+export function paginasEnOctavos(n: number): string {
+  if (!n) return ''
+  const octavos = Math.round(n * 8)
+  const enteras = Math.floor(octavos / 8)
+  const resto = octavos % 8
+  if (!resto) return String(enteras)
+  return enteras ? `${enteras} ${resto}/8` : `${resto}/8`
+}
+
 // "Personaje — Nombre real" para mostrar elenco
 export const etiquetaElenco = (x: Persona) => (x.personaje ? `${x.personaje} — ${x.nombre}` : x.nombre)
 

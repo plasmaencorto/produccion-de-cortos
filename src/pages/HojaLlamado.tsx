@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { COMIDAS, callSheetVacia, useProyecto, useStore } from '../store'
 import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
 import { fechaBonita, uid } from '../utils'
-import { diasOrdenados, elenco, nombreLocacion, numeroDia, tecnicos } from '../helpers'
+import { diasOrdenados, elenco, nombreLocacion, numeroDia, numeroPersonaje, tecnicos } from '../helpers'
 import { colorDepartamento } from '../departamentos'
 import { buscarHospitales, type HospitalCercano } from '../hospitales'
 import type { CallSheet, Escena, EstadoActor, LlamadoActor, Persona, Proyecto } from '../types'
@@ -24,7 +24,7 @@ const llamadoActorVacio = (): LlamadoActor => ({
 })
 
 // El número con el que se identifica a cada personaje en toda la hoja
-const idPersonaje = (p: Proyecto, personaId: string) => elenco(p).findIndex(x => x.id === personaId) + 1
+const idPersonaje = numeroPersonaje
 
 export default function HojaLlamado() {
   const p = useProyecto()
