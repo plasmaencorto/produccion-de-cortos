@@ -1,5 +1,5 @@
 // ===== Cálculos compartidos entre módulos =====
-import type { EstadoActor, LineaPresupuesto, Persona, Proyecto, ReporteDia } from './types'
+import type { EstadoActor, Gasto, LineaPresupuesto, Persona, Proyecto, ReporteDia, Solicitud } from './types'
 
 // Días de rodaje ordenados por fecha (los sin fecha, al final)
 export const diasOrdenados = (p: Proyecto) =>
@@ -200,3 +200,39 @@ export function estadoActorEnDia(p: Proyecto, actorId: string, diaId: string): E
 
 // Tarifa por día (si la unidad de la tarifa es por día/jornada)
 export const tarifaDiaria = (x: Persona) => (/d[ií]a|jornada/i.test(x.unidadTarifa || '') ? x.tarifa || 0 : 0)
+
+// ---- Presupuesto contra lo gastado (Control de Gastos) ----
+export const ivaSolicitud = (s: Solicitud) => (s.iva ? (s.subtotal || 0) * IVA : 0)
+export const totalSolicitud = (s: Solicitud) => (s.subtotal || 0) + ivaSolicitud(s)
+export const totalGasto = (g: Gasto) => (g.importe || 0) + (g.iva || 0)
+
+export const SIN_CUENTA = 'Por definir'
+
+// Por cada cuenta: lo presupuestado, lo ya comprobado con ticket/factura y lo
+// comprometido (solicitudes autorizadas o pagadas que aún no se comprueban)
+export function ejercidoPorCuenta(p: Proyecto, ordenCuentas: string[]) {
+  const gastos = p.gastos ?? []
+  const solicitudes = p.solicitudes ?? []
+  const usadas = new Set([
+    ...p.presupuesto.map(l => l.categoria),
+    ...gastos.map(g => g.cuenta),
+    ...solicitudes.map(s => s.cuenta),
+  ])
+  const cuentas = [...ordenCuentas.filter(c => usadas.has(c)), ...[...usadas].filter(c => !ordenCuentas.includes(c)).sort()]
+  return cuentas
+    .map(cuenta => {
+      const presupuestado = totalesCategoria(p, cuenta).estimado
+      const comprobado = gastos.filter(g => g.cuenta === cuenta).reduce((t, g) => t + totalGasto(g), 0)
+      const comprometido = solicitudes
+        .filter(s => s.cuenta === cuenta && (s.estado === 'Autorizada' || s.estado === 'Pagada'))
+        .reduce((t, s) => t + totalSolicitud(s), 0)
+      return {
+        cuenta,
+        presupuestado,
+        comprobado,
+        comprometido,
+        disponible: presupuestado - comprobado - comprometido,
+      }
+    })
+    .filter(x => x.presupuestado || x.comprobado || x.comprometido)
+}

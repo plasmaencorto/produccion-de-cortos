@@ -5,11 +5,21 @@ import { useState } from 'react'
 import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, Modal, Vacio, btn, btnSec, inp, tarjeta, td, th } from '../components/ui'
 import { aCSV, descargarArchivo, dinero, num, uid } from '../utils'
-import { IVA, diasOrdenados, numeroDia } from '../helpers'
+import {
+  IVA,
+  SIN_CUENTA,
+  diasOrdenados,
+  ejercidoPorCuenta,
+  ivaSolicitud,
+  numeroDia,
+  semaforo,
+  totalGasto,
+  totalSolicitud,
+} from '../helpers'
 import { PLANTILLA_PRESUPUESTO } from '../plantillaPresupuesto'
 import type { Dano, EstadoSolicitud, Gasto, Proyecto, Solicitud } from '../types'
 
-type Tab = 'solicitudes' | 'gastos' | 'danos'
+type Tab = 'comparativo' | 'solicitudes' | 'gastos' | 'danos'
 
 const ESTADOS_SOLICITUD: EstadoSolicitud[] = ['Solicitada', 'Autorizada', 'Pagada', 'Comprobada']
 const COLOR_SOLICITUD: Record<EstadoSolicitud, string> = {
@@ -20,10 +30,6 @@ const COLOR_SOLICITUD: Record<EstadoSolicitud, string> = {
 }
 const CUENTAS = ['Por definir', ...PLANTILLA_PRESUPUESTO.map(c => c.categoria)]
 
-// Totales
-const ivaSolicitud = (s: Solicitud) => (s.iva ? (s.subtotal || 0) * IVA : 0)
-const totalSolicitud = (s: Solicitud) => (s.subtotal || 0) + ivaSolicitud(s)
-const totalGasto = (g: Gasto) => (g.importe || 0) + (g.iva || 0)
 
 const hoy = () => new Date().toISOString().slice(0, 10)
 
@@ -42,7 +48,7 @@ const danoVacio = (): Dano => ({
 
 export default function Gastos() {
   const p = useProyecto()
-  const [tab, setTab] = useState<Tab>('solicitudes')
+  const [tab, setTab] = useState<Tab>('comparativo')
   if (!p) return null
 
   // Colecciones (con protección para proyectos guardados antes de este módulo)
@@ -55,6 +61,7 @@ export default function Gastos() {
   const totDanos = danos.reduce((t, d) => t + (d.valor || 0), 0)
 
   const TABS: { id: Tab; nombre: string }[] = [
+    { id: 'comparativo', nombre: '📊 Presupuesto vs. gastado' },
     { id: 'solicitudes', nombre: `📨 Solicitudes de recursos (${solicitudes.length})` },
     { id: 'gastos', nombre: `🧾 Comprobación de gastos (${gastos.length})` },
     { id: 'danos', nombre: `💥 Daños y pérdidas (${danos.length})` },
@@ -98,9 +105,101 @@ export default function Gastos() {
         ))}
       </div>
 
+      {tab === 'comparativo' && <Comparativo p={p} />}
       {tab === 'solicitudes' && <TablaSolicitudes p={p} solicitudes={solicitudes} />}
       {tab === 'gastos' && <TablaGastos p={p} gastos={gastos} solicitudes={solicitudes} />}
       {tab === 'danos' && <TablaDanos p={p} danos={danos} />}
+    </>
+  )
+}
+
+// ============ PRESUPUESTO VS. GASTADO ============
+// Cuenta por cuenta: cuánto se aprobó, cuánto ya se comprobó y cuánto está
+// comprometido en solicitudes que aún no traen factura
+const COLOR_BARRA = { verde: '#34d399', amarillo: '#facc15', rojo: '#f87171' }
+
+function Comparativo({ p }: { p: Proyecto }) {
+  const filas = ejercidoPorCuenta(p, CUENTAS)
+  if (filas.length === 0)
+    return (
+      <Vacio mensaje="Cuando tengas presupuesto y empieces a registrar solicitudes o gastos, aquí verás cuánto llevas ejercido en cada cuenta." />
+    )
+  const t = filas.reduce(
+    (a, x) => ({
+      presupuestado: a.presupuestado + x.presupuestado,
+      comprobado: a.comprobado + x.comprobado,
+      comprometido: a.comprometido + x.comprometido,
+      disponible: a.disponible + x.disponible,
+    }),
+    { presupuestado: 0, comprobado: 0, comprometido: 0, disponible: 0 },
+  )
+  const pasadas = filas.filter(x => x.disponible < 0 && x.cuenta !== SIN_CUENTA)
+
+  return (
+    <>
+      {pasadas.length > 0 && (
+        <div className="bg-red-900/30 border border-red-800 text-red-300 text-sm rounded-lg px-3 py-2 mb-4">
+          ⚠️ {pasadas.length === 1 ? 'Una cuenta ya se pasó' : `${pasadas.length} cuentas ya se pasaron`} del presupuesto:{' '}
+          {pasadas.map(x => x.cuenta.split('·')[0].trim()).join(', ')}
+        </div>
+      )}
+      <div className="overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-xl">
+        <table className="w-full min-w-[820px]">
+          <thead>
+            <tr className="border-b border-zinc-800">
+              {['Cuenta', 'Presupuestado', 'Comprobado', 'Comprometido', 'Disponible', 'Avance'].map(h => (
+                <th key={h} className={th}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map(x => {
+              const ejercido = x.comprobado + x.comprometido
+              const pct = x.presupuestado ? Math.round((ejercido / x.presupuestado) * 100) : ejercido ? 100 : 0
+              const color = COLOR_BARRA[semaforo(x.presupuestado, ejercido)]
+              const sinCuenta = x.cuenta === SIN_CUENTA
+              return (
+                <tr key={x.cuenta} className="border-b border-zinc-800/60">
+                  <td className={td + (sinCuenta ? ' text-yellow-300' : '')}>
+                    {sinCuenta ? '⚠ Sin cuenta asignada' : x.cuenta}
+                  </td>
+                  <td className={td + ' text-right'}>{dinero(x.presupuestado)}</td>
+                  <td className={td + ' text-right text-copal-300'}>{dinero(x.comprobado)}</td>
+                  <td className={td + ' text-right text-zinc-400'}>{x.comprometido ? dinero(x.comprometido) : '—'}</td>
+                  <td className={`${td} text-right font-semibold ${x.disponible < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {sinCuenta ? '—' : dinero(x.disponible)}
+                  </td>
+                  <td className={td + ' w-40'}>
+                    {!sinCuenta && (
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: Math.min(100, pct) + '%', backgroundColor: color }} />
+                        </div>
+                        <span className="text-xs tabular-nums w-10 text-right" style={{ color }}>{pct}%</span>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+            <tr className="bg-zinc-800/50 font-bold">
+              <td className={td + ' font-bold'}>TOTAL</td>
+              <td className={td + ' text-right font-bold'}>{dinero(t.presupuestado)}</td>
+              <td className={td + ' text-right font-bold text-copal-300'}>{dinero(t.comprobado)}</td>
+              <td className={td + ' text-right font-bold text-zinc-400'}>{dinero(t.comprometido)}</td>
+              <td className={`${td} text-right font-bold ${t.disponible < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {dinero(t.disponible)}
+              </td>
+              <td className={td} />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-zinc-500 mt-3">
+        <b>Comprobado</b>: gastos con ticket o factura. <b>Comprometido</b>: solicitudes autorizadas o pagadas que todavía
+        no se comprueban (dinero que ya salió o va a salir). <b>Disponible</b> = presupuestado − comprobado − comprometido.
+        El semáforo se pone amarillo al 80% y rojo al pasarse.
+      </p>
     </>
   )
 }

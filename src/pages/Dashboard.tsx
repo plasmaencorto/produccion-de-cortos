@@ -4,7 +4,9 @@ import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, btnSec, inp, tarjeta } from '../components/ui'
 import { archivoAImagen, dinero, fechaBonita } from '../utils'
 import {
+  SIN_CUENTA,
   diasOrdenados,
+  ejercidoPorCuenta,
   elenco,
   escenasEnVariosDias,
   escenasSinAsignar,
@@ -56,6 +58,12 @@ export default function Dashboard() {
     if ((t.estimado || t.real) && semaforo(t.estimado, t.real) === 'rojo')
       alertas.push({ texto: `Presupuesto en rojo: ${c.categoria}`, ruta: 'presupuesto' })
   })
+  // Cuentas donde lo comprobado + comprometido en Control de Gastos ya rebasa lo presupuestado
+  ejercidoPorCuenta(p, PLANTILLA_PRESUPUESTO.map(c => c.categoria))
+    .filter(x => x.cuenta !== SIN_CUENTA && x.disponible < 0)
+    .forEach(x =>
+      alertas.push({ texto: `Gastos por encima de lo presupuestado en ${x.cuenta} (${dinero(-x.disponible)} de más)`, ruta: 'gastos' }),
+    )
   const sinConfirmar = elenco(p).filter(x => x.contrato === 'Sin confirmar')
   if (sinConfirmar.length)
     alertas.push({ texto: `${sinConfirmar.length} persona(s) del elenco sin confirmar`, ruta: 'personas' })
