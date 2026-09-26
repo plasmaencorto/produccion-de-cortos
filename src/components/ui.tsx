@@ -37,7 +37,9 @@ export function FirmaCasa() {
       <Greca className="mt-6 opacity-90" />
       <div className="pt-3 flex items-center justify-between gap-4">
         <p className="text-[10px] text-zinc-500 leading-tight">
-          Documento generado con <b>Producción de Cortos</b>
+          Documento generado con <b>Producción de Cortos</b>,
+          <br />
+          una herramienta de <b>Plasma en Corto</b> y <b>Olor a Copal</b>
         </p>
         <div className="flex items-center gap-3 shrink-0">
           <img src={logoPlasmaPapel} alt="Plasma en Corto" className="h-8 w-auto" />
