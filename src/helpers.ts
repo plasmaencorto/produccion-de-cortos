@@ -1,5 +1,5 @@
 // ===== Cálculos compartidos entre módulos =====
-import type { LineaPresupuesto, Persona, Proyecto, ReporteDia } from './types'
+import type { EstadoActor, LineaPresupuesto, Persona, Proyecto, ReporteDia } from './types'
 
 // Días de rodaje ordenados por fecha (los sin fecha, al final)
 export const diasOrdenados = (p: Proyecto) =>
@@ -160,3 +160,43 @@ export function alertaJornada(inicio: string, fin: string): string | null {
   if (h > 12) return `Jornada de ${h} h (máx. recomendado: 12 h + 10 h de descanso)`
   return null
 }
+
+// ---- Day Out of Days: qué días trabaja cada actor ----
+// SW = empieza · W = trabaja · F = termina · SWF = empieza y termina el mismo día
+// H = "hold": entre su primer y último día, no trabaja pero sigue contratado
+export function dayOutOfDays(p: Proyecto) {
+  const dias = diasOrdenados(p)
+  return elenco(p).map(actor => {
+    const trabaja = dias.map(d =>
+      d.escenaIds.some(id => p.escenas.find(e => e.id === id)?.personajeIds.includes(actor.id)),
+    )
+    const primero = trabaja.indexOf(true)
+    const ultimo = trabaja.lastIndexOf(true)
+    const codigos: (EstadoActor | '')[] = trabaja.map((t, i) => {
+      if (primero < 0 || i < primero || i > ultimo) return ''
+      if (!t) return 'H'
+      if (primero === ultimo) return 'SWF'
+      return i === primero ? 'SW' : i === ultimo ? 'F' : 'W'
+    })
+    const trabajados = trabaja.filter(Boolean).length
+    const holds = codigos.filter(c => c === 'H').length
+    return {
+      actor,
+      codigos,
+      trabajados,
+      holds,
+      pagados: trabajados + holds, // del primer al último día, todos cuentan
+      inicio: primero >= 0 ? dias[primero].fecha : '',
+      fin: ultimo >= 0 ? dias[ultimo].fecha : '',
+    }
+  })
+}
+
+// Estado sugerido de un actor en un día (para la hoja de llamado)
+export function estadoActorEnDia(p: Proyecto, actorId: string, diaId: string): EstadoActor | '' {
+  const i = diasOrdenados(p).findIndex(d => d.id === diaId)
+  return dayOutOfDays(p).find(x => x.actor.id === actorId)?.codigos[i] ?? ''
+}
+
+// Tarifa por día (si la unidad de la tarifa es por día/jornada)
+export const tarifaDiaria = (x: Persona) => (/d[ií]a|jornada/i.test(x.unidadTarifa || '') ? x.tarifa || 0 : 0)

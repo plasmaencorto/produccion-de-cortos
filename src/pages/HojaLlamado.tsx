@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { COMIDAS, callSheetVacia, useProyecto, useStore } from '../store'
 import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, inpPapel, papel, tdPapel, thPapel } from '../components/ui'
 import { fechaBonita, uid } from '../utils'
-import { diasOrdenados, elenco, nombreLocacion, numeroDia, numeroPersonaje, tecnicos } from '../helpers'
+import { diasOrdenados, elenco, estadoActorEnDia, nombreLocacion, numeroDia, numeroPersonaje, tecnicos } from '../helpers'
 import { colorDepartamento } from '../departamentos'
 import { buscarHospitales, type HospitalCercano } from '../hospitales'
 import type { CallSheet, Escena, EstadoActor, LlamadoActor, Persona, Proyecto } from '../types'
@@ -63,11 +63,19 @@ export default function HojaLlamado() {
     ['1er AD', p.primerAD],
   ].filter(([, v]) => v)
 
+  // El estado (SW/W/F/H) se sugiere solo a partir del plan de rodaje,
+  // igual que en el Day Out of Days; se puede cambiar a mano
+  const llamadoDe = (pid: string): LlamadoActor => {
+    const guardado = cs.llamadosActores[pid] as LlamadoActor | undefined
+    if (guardado) return { ...llamadoActorVacio(), ...guardado }
+    return { ...llamadoActorVacio(), estado: estadoActorEnDia(p, pid, dia.id) || 'W' }
+  }
+
   const setLlamadoActor = (pid: string, patch: Partial<LlamadoActor>) =>
     setCallSheet(dia.id, {
       llamadosActores: {
         ...cs.llamadosActores,
-        [pid]: { ...llamadoActorVacio(), ...cs.llamadosActores[pid], ...patch },
+        [pid]: { ...llamadoDe(pid), ...patch },
       },
     })
 
@@ -291,7 +299,7 @@ export default function HojaLlamado() {
               <tr><td colSpan={8} className={tdPapel + ' text-center text-zinc-500'}>Sin elenco en las escenas de este día</td></tr>
             )}
             {elencoDia.map(x => {
-              const ll = { ...llamadoActorVacio(), ...cs.llamadosActores[x.id] }
+              const ll = llamadoDe(x.id)
               return (
                 <tr key={x.id}>
                   <td className={tdPapel + ' font-black w-10 text-center'}>{idPersonaje(p, x.id)}</td>

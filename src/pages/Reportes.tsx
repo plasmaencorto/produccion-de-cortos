@@ -6,6 +6,7 @@ import { Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, papel, tdPapel, thPapel
 import { aCSV, descargarArchivo, dinero, fechaBonita } from '../utils'
 import {
   categoriasExtra,
+  dayOutOfDays,
   diasOrdenados,
   elenco,
   escenasSinAsignar,
@@ -13,9 +14,11 @@ import {
   ivaLinea,
   nombreLocacion,
   numeroDia,
+  numeroPersonaje,
   personasTotal,
   plantillaPersonal,
   reporteDia,
+  tarifaDiaria,
   tecnicos,
   totalesCategoria,
   totalesProyecto,
@@ -31,6 +34,7 @@ const TIPOS = [
   { id: 'contactos', nombre: '👥 Lista de contactos' },
   { id: 'personal', nombre: '🍽 Plantilla de personal' },
   { id: 'plan', nombre: '📅 Plan de rodaje resumido' },
+  { id: 'dood', nombre: '🗓 Day Out of Days (elenco)' },
 ]
 
 export default function Reportes() {
@@ -73,6 +77,20 @@ export default function Reportes() {
         'text/csv;charset=utf-8',
         true,
       )
+    } else if (tipo === 'dood') {
+      const dias = diasOrdenados(p)
+      descargarArchivo(
+        'day-out-of-days.csv',
+        aCSV([
+          ['#', 'Personaje', 'Actor/actriz', ...dias.map(d => `Día ${numeroDia(p, d.id)} (${d.fecha})`), 'Trabaja', 'Hold', 'Días pagados', 'Inicio', 'Fin', 'Costo estimado'],
+          ...dayOutOfDays(p).map(x => [
+            numeroPersonaje(p, x.actor.id), x.actor.personaje, x.actor.nombre, ...x.codigos,
+            x.trabajados, x.holds, x.pagados, x.inicio, x.fin, tarifaDiaria(x.actor) * x.pagados || '',
+          ]),
+        ]),
+        'text/csv;charset=utf-8',
+        true,
+      )
     } else if (tipo === 'contactos') {
       descargarArchivo(
         'contactos.csv',
@@ -104,7 +122,7 @@ export default function Reportes() {
             ))}
           </select>
         )}
-        {(tipo === 'presupuesto' || tipo === 'contactos' || tipo === 'personal') && (
+        {(tipo === 'presupuesto' || tipo === 'contactos' || tipo === 'personal' || tipo === 'dood') && (
           <button className={btnSec} onClick={exportarCSV}>⬇ Exportar CSV</button>
         )}
         <button className={btn} onClick={() => window.print()}>🖨 Imprimir / Guardar PDF</button>
@@ -135,6 +153,7 @@ export default function Reportes() {
         {tipo === 'contactos' && <ReporteContactos p={p} />}
         {tipo === 'personal' && <ReportePersonal p={p} />}
         {tipo === 'plan' && <ReportePlan p={p} />}
+        {tipo === 'dood' && <ReporteDOOD p={p} />}
         <FirmaCasa />
       </div>
     </>
@@ -461,5 +480,82 @@ function ReportePlan({ p }: { p: Proyecto }) {
         ))}
       </tbody>
     </table>
+  )
+}
+
+// --- Day Out of Days: actor por actor, qué días trabaja ---
+// Sirve para saber cuántos días se le paga a cada quien (los "hold" también cuentan)
+const COLOR_DOOD: Record<string, string> = {
+  SW: 'bg-emerald-200',
+  SWF: 'bg-emerald-200',
+  W: 'bg-sky-100',
+  F: 'bg-rose-200',
+  H: 'bg-amber-100',
+}
+
+function ReporteDOOD({ p }: { p: Proyecto }) {
+  const dias = diasOrdenados(p)
+  const filas = dayOutOfDays(p)
+  if (filas.length === 0) return <p className="text-zinc-500">No hay elenco registrado.</p>
+  if (dias.length === 0) return <p className="text-zinc-500">Primero crea los días de rodaje en el Plan de Rodaje.</p>
+  const costoTotal = filas.reduce((t, x) => t + tarifaDiaria(x.actor) * x.pagados, 0)
+  return (
+    <>
+      <table className="w-full border-collapse mb-3 text-center">
+        <thead>
+          <tr>
+            <th className={thPapel}>#</th>
+            <th className={thPapel}>Personaje</th>
+            {dias.map(d => (
+              <th key={d.id} className={thPapel + ' !text-center'}>
+                Día {numeroDia(p, d.id)}
+                <span className="block font-normal normal-case text-zinc-500">
+                  {d.fecha ? d.fecha.slice(8, 10) + '/' + d.fecha.slice(5, 7) : ''}
+                </span>
+              </th>
+            ))}
+            {['Trab.', 'Hold', 'Pagados', 'Inicio', 'Fin', 'Costo est.'].map(h => (
+              <th key={h} className={thPapel + ' !text-center'}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filas.map(x => (
+            <tr key={x.actor.id}>
+              <td className={tdPapel + ' font-black'}>{numeroPersonaje(p, x.actor.id)}</td>
+              <td className={tdPapel + ' text-left whitespace-nowrap'}>
+                <b>{x.actor.personaje || '—'}</b>
+                <span className="block text-xs text-zinc-500">{x.actor.nombre}</span>
+              </td>
+              {x.codigos.map((c, i) => (
+                <td key={i} className={`${tdPapel} font-bold text-xs ${COLOR_DOOD[c] ?? ''}`}>{c}</td>
+              ))}
+              <td className={tdPapel + ' font-semibold'}>{x.trabajados}</td>
+              <td className={tdPapel}>{x.holds}</td>
+              <td className={tdPapel + ' font-black'}>{x.pagados}</td>
+              <td className={tdPapel + ' text-xs whitespace-nowrap'}>{x.inicio}</td>
+              <td className={tdPapel + ' text-xs whitespace-nowrap'}>{x.fin}</td>
+              <td className={tdPapel + ' text-right whitespace-nowrap'}>
+                {tarifaDiaria(x.actor) ? dinero(tarifaDiaria(x.actor) * x.pagados) : '—'}
+              </td>
+            </tr>
+          ))}
+          {costoTotal > 0 && (
+            <tr className="bg-copal-100">
+              <td className={tdPapel + ' font-black text-left'} colSpan={dias.length + 7}>
+                Total estimado de elenco
+              </td>
+              <td className={tdPapel + ' text-right font-black'}>{dinero(costoTotal)}</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <p className="text-xs text-zinc-600">
+        <b>SW</b> empieza · <b>W</b> trabaja · <b>F</b> termina · <b>SWF</b> empieza y termina el mismo día ·{' '}
+        <b>H</b> hold: no trabaja ese día, pero ya empezó y no ha terminado, así que normalmente se le paga. Se arma solo
+        con las escenas de cada día del Plan de Rodaje. El costo usa la tarifa por día capturada en Elenco y Equipo;
+        compáralo con la cuenta 1100 del presupuesto.
+      </p>
+    </>
   )
 }
