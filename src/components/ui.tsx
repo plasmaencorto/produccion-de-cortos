@@ -50,9 +50,9 @@ export function FirmaCasa() {
 
 // Clases de estilo (tema oscuro)
 export const inp =
-  'w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-copal-500'
+  'w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-copal-400'
 export const inpMini =
-  'w-full bg-transparent border border-zinc-700/60 rounded px-1.5 py-1 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-copal-500'
+  'w-full bg-transparent border border-zinc-700/60 rounded px-1.5 py-1 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-copal-400'
 // El botón de acción va en rosa mexicano, como en plasmaencorto.com
 export const btn =
   'inline-flex items-center gap-1.5 bg-rosa-500 hover:bg-rosa-400 text-white font-semibold rounded-lg px-3 py-1.5 text-sm cursor-pointer disabled:opacity-40'
@@ -69,7 +69,7 @@ export const tarjeta = 'bg-zinc-900 border border-zinc-800 rounded-xl p-4'
 export const papel =
   'bg-white text-zinc-900 rounded-lg shadow-2xl p-8 max-w-4xl mx-auto overflow-x-auto print:shadow-none print:max-w-none print:p-0 print:rounded-none print:overflow-visible'
 export const inpPapel =
-  'w-full border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-900 focus:outline-none focus:border-copal-500'
+  'w-full border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-900 focus:outline-none focus:border-copal-400'
 export const thPapel =
   'text-left text-[11px] font-bold uppercase tracking-wide border border-zinc-300 bg-zinc-100 px-2 py-1.5'
 export const tdPapel = 'border border-zinc-300 px-2 py-1.5 text-sm align-top'
@@ -131,7 +131,7 @@ export function BotonRefrescar() {
         // deja que se vea el giro antes de recargar
         setTimeout(() => location.reload(), 450)
       }}
-      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-copal-400 hover:border-copal-500 cursor-pointer shrink-0"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-copal-400 hover:border-copal-400 cursor-pointer shrink-0"
     >
       <svg
         viewBox="0 0 24 24"

@@ -238,7 +238,7 @@ function EditorEscena({
                   onClick={() => togglePersonaje(x.id)}
                   className={`text-xs px-2.5 py-1 rounded-full border ${
                     b.personajeIds.includes(x.id)
-                      ? 'bg-copal-500/20 border-copal-500 text-copal-300'
+                      ? 'bg-copal-500/20 border-copal-400 text-copal-300'
                       : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'
                   }`}
                 >

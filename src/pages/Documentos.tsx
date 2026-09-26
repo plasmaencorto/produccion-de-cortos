@@ -50,7 +50,7 @@ export default function Documentos() {
             onClick={() => setTipo(t.id)}
             className={`px-3 py-1.5 rounded-lg text-sm border cursor-pointer ${
               tipo === t.id
-                ? 'bg-copal-500/20 border-copal-500 text-copal-300 font-semibold'
+                ? 'bg-copal-500/20 border-copal-400 text-copal-300 font-semibold'
                 : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500'
             }`}
           >

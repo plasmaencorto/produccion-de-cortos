@@ -37,11 +37,14 @@
 @theme {
   --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Amarillo: el acento de lectura sobre el fondo oscuro */
+  /* Amarillo: el acento de lectura sobre el fondo oscuro.
+     Los tonos de texto (200–400) van suavizados, tipo dorado claro: el amarillo
+     puro de la casa (500) cansaba la vista en letras sobre negro. El 500 se
+     queda para rellenos y detalles pequeños. */
   --color-copal-100: #fffde0;
-  --color-copal-200: #fff9a8;
-  --color-copal-300: #fff45c;
-  --color-copal-400: #ffee1f;
+  --color-copal-200: #f3e7b8;
+  --color-copal-300: #e8d68f;
+  --color-copal-400: #dcc56a;
   --color-copal-500: #ffea00;
   --color-copal-600: #ccbb00;
   --color-copal-700: #8f8300;
