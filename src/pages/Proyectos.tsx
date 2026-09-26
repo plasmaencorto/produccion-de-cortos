@@ -129,14 +129,17 @@ export default function Proyectos() {
               <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => descargarRespaldo(p)} title="Descargar respaldo JSON">
                 ⬇ Respaldo
               </button>
+              {/* Eliminar va aparte, hasta la derecha y discreto, para no picarle por accidente */}
               <button
-                className={btnSec + ' !px-2.5 !py-1 !text-xs hover:!bg-red-900/50 hover:!text-red-300'}
+                className="ml-auto self-center text-zinc-600 hover:text-red-400 text-sm px-1.5 py-1 rounded cursor-pointer"
+                title="Eliminar proyecto"
+                aria-label="Eliminar proyecto"
                 onClick={() => {
                   if (confirm(`¿Eliminar el proyecto "${p.nombre}"? Esta acción no se puede deshacer.\n\nTip: descarga un respaldo antes.`))
                     eliminarProyecto(p.id)
                 }}
               >
-                🗑 Eliminar
+                🗑
               </button>
             </div>
           </div>
