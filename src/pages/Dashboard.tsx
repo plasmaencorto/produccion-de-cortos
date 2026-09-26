@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, btnSec, inp, tarjeta } from '../components/ui'
-import { archivoAImagen, dinero, fechaBonita } from '../utils'
+import { archivoAImagen, dinero, fechaBonita, hoyLocal } from '../utils'
 import {
   SIN_CUENTA,
   diasOrdenados,
@@ -64,6 +64,17 @@ export default function Dashboard() {
     .forEach(x =>
       alertas.push({ texto: `Gastos por encima de lo presupuestado en ${x.cuenta} (${dinero(-x.disponible)} de más)`, ruta: 'gastos' }),
     )
+  // Etapas de postproducción que ya pasaron su fecha de entrega
+  const hoyISO = hoyLocal()
+  const postAtrasada = (p.postproduccion ?? []).filter(e => e.entrega && e.entrega < hoyISO && e.estado !== 'Terminada')
+  if (postAtrasada.length)
+    alertas.push({
+      texto:
+        postAtrasada.length === 1
+          ? `Postproducción atrasada: ${postAtrasada[0].nombre || 'etapa sin nombre'}`
+          : `${postAtrasada.length} etapas de postproducción atrasadas`,
+      ruta: 'post',
+    })
   const sinConfirmar = elenco(p).filter(x => x.contrato === 'Sin confirmar')
   if (sinConfirmar.length)
     alertas.push({ texto: `${sinConfirmar.length} persona(s) del elenco sin confirmar`, ruta: 'personas' })

@@ -17,6 +17,7 @@ const SECCIONES = [
   { ruta: 'personas', icono: '👥', nombre: 'Elenco y Equipo' },
   { ruta: 'locaciones', icono: '📍', nombre: 'Locaciones' },
   { ruta: 'equipamiento', icono: '🎥', nombre: 'Equipamiento' },
+  { ruta: 'post', icono: '🎚', nombre: 'Postproducción' },
   { ruta: 'documentos', icono: '⚖️', nombre: 'Documentos legales' },
   { ruta: 'reportes', icono: '📊', nombre: 'Reportes' },
 ]

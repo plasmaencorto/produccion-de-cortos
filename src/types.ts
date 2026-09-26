@@ -242,6 +242,28 @@ export interface Dano {
   comentarios: string
 }
 
+// ---- Postproducción ----
+export type EstadoEtapa = 'Pendiente' | 'En proceso' | 'En revisión' | 'Terminada'
+
+// Una etapa de la post (edición, color, mezcla…)
+export interface EtapaPost {
+  id: string
+  nombre: string
+  responsable: string
+  inicio: string // aaaa-mm-dd
+  entrega: string // fecha límite
+  estado: EstadoEtapa
+  notas: string // versión actual, comentarios de la revisión…
+}
+
+// Un archivo final que hay que entregar (master, subtítulos, stems…)
+export interface Entregable {
+  id: string
+  nombre: string
+  formato: string
+  listo: boolean
+}
+
 // El proyecto completo (todo se guarda junto en localStorage)
 export interface Proyecto {
   id: string
@@ -264,6 +286,8 @@ export interface Proyecto {
   solicitudes: Solicitud[]
   gastos: Gasto[]
   danos: Dano[]
+  postproduccion?: EtapaPost[]
+  entregables?: Entregable[]
   callSheets: Record<string, CallSheet> // por id de día de rodaje
   reporteDiario: Record<string, ReporteDia | string> // string = formato viejo (solo notas)
 }

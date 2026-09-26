@@ -51,3 +51,17 @@ export async function archivoAImagen(file: File, maxLado = 900): Promise<string>
   canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height)
   return canvas.toDataURL('image/jpeg', 0.75)
 }
+
+// Fecha de hoy "aaaa-mm-dd" en la hora local (toISOString daría la de
+// Greenwich, y en México por la noche saldría la fecha de mañana)
+export function hoyLocal(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Suma días a una fecha "aaaa-mm-dd"
+export function sumarDias(iso: string, dias: number): string {
+  const [a, m, d] = iso.split('-').map(Number)
+  const f = new Date(a, m - 1, d + dias)
+  return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`
+}

@@ -5,6 +5,8 @@ import type {
   CallSheet,
   Dano,
   DiaRodaje,
+  Entregable,
+  EtapaPost,
   Equipo,
   Escena,
   Gasto,
@@ -29,6 +31,8 @@ export type Colecciones = {
   solicitudes: Solicitud
   gastos: Gasto
   danos: Dano
+  postproduccion: EtapaPost
+  entregables: Entregable
 }
 
 // Crea un proyecto vacío
@@ -52,6 +56,8 @@ export function proyectoNuevo(nombre: string): Proyecto {
     solicitudes: [],
     gastos: [],
     danos: [],
+    postproduccion: [],
+    entregables: [],
     callSheets: {},
     reporteDiario: {},
   }
@@ -78,6 +84,8 @@ export function normalizarProyecto(p: Partial<Proyecto>): Proyecto {
     solicitudes: p.solicitudes ?? [],
     gastos: p.gastos ?? [],
     danos: p.danos ?? [],
+    postproduccion: p.postproduccion ?? [],
+    entregables: p.entregables ?? [],
     callSheets: p.callSheets ?? {},
     reporteDiario: p.reporteDiario ?? {},
   }
