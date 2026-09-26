@@ -64,6 +64,13 @@ export function colorDepartamento(texto: string): string {
   return GRIS
 }
 
+// Nombre del departamento (familia) de un puesto, o '' si no se reconoce
+export function departamentoDe(texto: string): string {
+  const t = (texto || '').trim()
+  for (const [re, familia] of POR_NOMBRE) if (re.test(t)) return FAMILIAS[familia].nombre
+  return ''
+}
+
 // Para pintar fondos suaves sin perder legibilidad
 export const conTransparencia = (hex: string, alfa: number) => {
   const n = parseInt(hex.slice(1), 16)

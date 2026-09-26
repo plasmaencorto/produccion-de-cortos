@@ -65,3 +65,41 @@ export function sumarDias(iso: string, dias: number): string {
   const f = new Date(a, m - 1, d + dias)
   return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`
 }
+
+// Cantidad con letra, como en los documentos de contabilidad:
+// 143000 -> "CIENTO CUARENTA Y TRES MIL PESOS 00/100 M.N."
+const UNIDADES = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE', 'DIEZ',
+  'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE',
+  'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE']
+const DECENAS = ['', '', '', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA']
+const CENTENAS = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS',
+  'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS']
+
+function menorDeMil(n: number): string {
+  if (n === 100) return 'CIEN'
+  const c = Math.floor(n / 100)
+  const r = n % 100
+  const resto = r < 30 ? UNIDADES[r] : DECENAS[Math.floor(r / 10)] + (r % 10 ? ' Y ' + UNIDADES[r % 10] : '')
+  return [CENTENAS[c], resto].filter(Boolean).join(' ')
+}
+
+function enteroALetras(n: number): string {
+  if (n === 0) return 'CERO'
+  const millones = Math.floor(n / 1_000_000)
+  const miles = Math.floor((n % 1_000_000) / 1000)
+  const resto = n % 1000
+  const partes: string[] = []
+  if (millones) partes.push(millones === 1 ? 'UN MILLÓN' : enteroALetras(millones) + ' MILLONES')
+  if (miles) partes.push(miles === 1 ? 'MIL' : menorDeMil(miles) + ' MIL')
+  if (resto) partes.push(menorDeMil(resto))
+  return partes.join(' ')
+}
+
+export function cantidadConLetra(monto: number): string {
+  const entero = Math.floor(Math.max(0, monto))
+  const centavos = Math.round((Math.max(0, monto) - entero) * 100)
+  const letras = enteroALetras(entero)
+  // "UN MILLÓN DE PESOS", "DOS MILLONES DE PESOS"
+  const de = /MILL(ÓN|ONES)$/.test(letras) ? ' DE' : ''
+  return `${letras}${de} ${entero === 1 ? 'PESO' : 'PESOS'} ${String(centavos).padStart(2, '0')}/100 M.N.`
+}

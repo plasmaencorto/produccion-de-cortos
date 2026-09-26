@@ -1,44 +1,19 @@
 // ===== Documentos legales =====
 // Machotes que se llenan solos con los datos del proyecto: la cesión de
-// derechos de imagen (elenco y equipo) y la autorización de locación.
+// derechos de imagen (elenco y equipo), la autorización de locación y el
+// deal memo para contratar al crew.
 // Sin estos papeles firmados, muchos festivales no aceptan el corto.
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useProyecto, useStore } from '../store'
 import { Campo, Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, papel, tarjeta } from '../components/ui'
 import { dinero, hoyLocal, num } from '../utils'
 import { dayOutOfDays, diasOrdenados, elenco, personasTotal, tarifaDiaria, tecnicos } from '../helpers'
 import type { Locacion, Persona, Proyecto } from '../types'
+import { Cabecera, D, Firma, fechaLarga } from '../components/documento'
+import DealMemo from '../components/DealMemo'
 
-type Tipo = 'imagen' | 'locacion'
+type Tipo = 'imagen' | 'locacion' | 'crew'
 
-
-// "2026-10-05" -> "5 de octubre de 2026"
-function fechaLarga(iso: string): string {
-  if (!iso) return ''
-  const [a, m, d] = iso.split('-').map(Number)
-  return new Date(a, m - 1, d).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-// Un dato del documento: si falta, deja la raya para llenarlo a mano
-function D({ children }: { children: ReactNode }) {
-  const vacio = children === '' || children === undefined || children === null
-  return vacio ? (
-    <span className="inline-block min-w-32 border-b border-zinc-500">&nbsp;</span>
-  ) : (
-    <b>{children}</b>
-  )
-}
-
-function Firma({ titulo, nombre, detalle }: { titulo: string; nombre?: string; detalle?: string }) {
-  return (
-    <div className="text-center text-sm break-inside-avoid">
-      <div className="h-14" />
-      <div className="border-t border-zinc-800 pt-1 font-semibold">{nombre || ' '}</div>
-      <div className="text-xs text-zinc-600">{titulo}</div>
-      {detalle && <div className="text-xs text-zinc-500 mt-0.5">{detalle}</div>}
-    </div>
-  )
-}
 
 export default function Documentos() {
   const p = useProyecto()
@@ -68,6 +43,7 @@ export default function Documentos() {
         {[
           { id: 'imagen' as const, nombre: '🎭 Cesión de derechos de imagen' },
           { id: 'locacion' as const, nombre: '🏠 Autorización de locación' },
+          { id: 'crew' as const, nombre: '🎬 Deal memo del crew' },
         ].map(t => (
           <button
             key={t.id}
@@ -100,7 +76,9 @@ export default function Documentos() {
         </Campo>
       </div>
 
-      {tipo === 'imagen' ? (
+      {tipo === 'crew' ? (
+        <DealMemo p={p} ciudad={ciudad} fecha={fecha} responsable={responsable} />
+      ) : tipo === 'imagen' ? (
         <CesionImagen p={p} ciudad={ciudad} fecha={fecha} responsable={responsable}
           onFirmado={x => actualizar('personas', x.id, { contrato: 'Firmado' })} />
       ) : (
@@ -467,17 +445,5 @@ function AutorizacionLocacion({ p, ciudad, fecha, responsable, onFirmado }: Comu
         </div>
       )}
     </>
-  )
-}
-
-function Cabecera({ p, titulo }: { p: Proyecto; titulo: string }) {
-  return (
-    <div className="border-b-2 border-zinc-300 pb-3 mb-5 flex items-center gap-3">
-      {p.logo && <img src={p.logo} alt="" className="h-12 w-auto shrink-0" />}
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">🎬 {p.nombre}</p>
-        <h2 className="text-xl font-black uppercase">{titulo}</h2>
-      </div>
-    </div>
   )
 }
