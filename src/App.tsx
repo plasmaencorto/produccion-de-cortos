@@ -5,6 +5,7 @@ import Rescate from './components/Rescate'
 import Proyectos from './pages/Proyectos'
 import Dashboard from './pages/Dashboard'
 import Desglose from './pages/Desglose'
+import Tomas from './pages/Tomas'
 import ImportarGuion from './pages/ImportarGuion'
 import Presupuesto from './pages/Presupuesto'
 import Gastos from './pages/Gastos'
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/p/:id" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="desglose" element={<Desglose />} />
+          <Route path="tomas" element={<Tomas />} />
           <Route path="guion" element={<ImportarGuion />} />
           <Route path="presupuesto" element={<Presupuesto />} />
           <Route path="gastos" element={<Gastos />} />

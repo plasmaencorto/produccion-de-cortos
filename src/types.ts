@@ -23,6 +23,20 @@ export interface Escena {
   notas: string
   paginas: number // páginas de guión estimadas
   estado: EstadoEscena
+  tomas?: Toma[] // lista de tomas (shot list) de la escena
+}
+
+// Una toma planeada de la escena (shot list de dirección y fotografía)
+export interface Toma {
+  id: string
+  numero: string // 1A, 1B…
+  plano: string // plano general, primer plano…
+  angulo: string
+  movimiento: string
+  lente: string
+  descripcion: string
+  notas: string
+  filmada: boolean
 }
 
 // Una línea del presupuesto (como en los machotes profesionales:

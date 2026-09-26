@@ -9,6 +9,7 @@ const SECCIONES = [
   { ruta: '', icono: '🎬', nombre: 'Dashboard' },
   { ruta: 'guion', icono: '📥', nombre: 'Importar Guion' },
   { ruta: 'desglose', icono: '📋', nombre: 'Desglose de Guión' },
+  { ruta: 'tomas', icono: '📷', nombre: 'Lista de Tomas' },
   { ruta: 'presupuesto', icono: '💰', nombre: 'Presupuesto' },
   { ruta: 'gastos', icono: '🧾', nombre: 'Control de Gastos' },
   { ruta: 'plan', icono: '📅', nombre: 'Plan de Rodaje' },
