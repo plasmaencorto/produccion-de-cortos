@@ -59,8 +59,9 @@ export default function Documentos() {
       </Encabezado>
 
       <div className="bg-copal-500/10 border border-copal-700/60 rounded-lg px-3 py-2 text-sm text-zinc-300 mb-4 print:hidden">
-        ⚖️ Son <b>machotes de referencia</b> para cortometrajes con <b>fines culturales y educativos, sin fines de
-        lucro</b>. No sustituyen la asesoría de un abogado: si tienes un caso especial, pide que los revisen.
+        ⚖️ Son <b>machotes de referencia</b> para cortometrajes con <b>fines culturales y educativos</b>; la cesión de
+        imagen puede incluir además el uso comercial. No sustituyen la asesoría de un abogado: si tienes un caso
+        especial, pide que los revisen.
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4 print:hidden">
@@ -129,6 +130,9 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
   const [gratuito, setGratuito] = useState(!pagoSugerido(personas[0]))
   const [monto, setMonto] = useState(pagoSugerido(personas[0]))
   const [vigencia, setVigencia] = useState('por tiempo indefinido')
+  // Uso de la obra: cada producción elige si la cesión incluye la explotación comercial
+  const [comercial, setComercial] = useState(false)
+  const [porcentaje, setPorcentaje] = useState('')
   const x = personas.find(y => y.id === id)
 
   if (personas.length === 0)
@@ -168,6 +172,29 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
             ))}
           </select>
         </Campo>
+        <Campo etiqueta="Uso de la obra" className="md:col-span-2">
+          <select className={inp} value={comercial ? 'comercial' : 'cultural'} onChange={e => setComercial(e.target.value === 'comercial')}>
+            <option value="cultural">Cultural y educativo, sin fines de lucro</option>
+            <option value="comercial">Cultural, educativo y comercial</option>
+          </select>
+        </Campo>
+        {comercial && (
+          <Campo etiqueta="Participación en ganancias (%)" className="md:col-span-2">
+            <input
+              className={inp}
+              value={porcentaje}
+              onChange={e => setPorcentaje(e.target.value.replace(/[^\d.]/g, ''))}
+              placeholder="Déjalo vacío para llenarlo a mano en la firma"
+            />
+          </Campo>
+        )}
+        {comercial && (
+          <p className="md:col-span-4 bg-red-900/20 border border-red-800/70 text-red-200 text-xs rounded-lg px-3 py-2">
+            ⚠️ Con uso comercial, la persona debe saber desde el principio que el corto podría venderse, y la ley le da
+            derecho a una parte de lo que gane (art. 117 bis de la Ley Federal del Derecho de Autor). Revísalo con un
+            abogado antes de firmar{menor ? ', sobre todo porque firma una persona menor de edad' : ''}.
+          </p>
+        )}
         <Campo etiqueta="Vigencia">
           <select className={inp} value={vigencia} onChange={e => setVigencia(e.target.value)}>
             <option>por tiempo indefinido</option>
@@ -230,8 +257,10 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
           <li>
             Que {menor ? 'la persona menor a mi cargo participa' : 'participo'} en el cortometraje titulado{' '}
             <D>«{p.nombre}»</D> (en adelante, «la Obra»), dirigido por <D>{p.director}</D> y producido por{' '}
-            <D>{responsable}</D> (en adelante, «la Producción»), {funcion}. La Obra es una producción con fines
-            culturales y educativos, sin fines de lucro.
+            <D>{responsable}</D> (en adelante, «la Producción»), {funcion}.{' '}
+            {comercial
+              ? 'La Obra es una producción con fines culturales y educativos que, además, podrá explotarse comercialmente.'
+              : 'La Obra es una producción con fines culturales y educativos, sin fines de lucro.'}
           </li>
           <li>
             Que autorizo a la Producción, de manera expresa y {contraprestacion}, a fijar, reproducir, editar, doblar,
@@ -245,10 +274,26 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
             redes sociales; portafolios de quienes participaron; y la promoción de la Obra y de su equipo creativo, en
             cualquier formato, en todo el mundo y <D>{vigencia}</D>.
           </li>
-          <li>
-            Que esta autorización no incluye la explotación comercial de la Obra. Si en el futuro la Producción deseara
-            venderla o explotarla con fines de lucro, deberá obtener una nueva autorización por escrito.
-          </li>
+          {comercial ? (
+            <>
+              <li>
+                Que esta autorización comprende también la explotación comercial de la Obra: su venta, licencia o renta a
+                plataformas digitales, televisoras, distribuidoras y exhibidores, y las funciones con cobro de entrada,
+                por los mismos medios, territorio y vigencia señalados en el punto anterior.
+              </li>
+              <li>
+                Que, por dicha explotación comercial, {menor ? 'la persona menor a mi cargo recibirá' : 'recibiré'} una
+                participación del <D>{porcentaje ? `${porcentaje}%` : ''}</D> de los ingresos netos que obtenga la
+                Producción, conforme al artículo 117 bis de la Ley Federal del Derecho de Autor. La Producción informará
+                por escrito de cualquier acuerdo de venta o licencia de la Obra y de los ingresos que genere.
+              </li>
+            </>
+          ) : (
+            <li>
+              Que esta autorización no incluye la explotación comercial de la Obra. Si en el futuro la Producción deseara
+              venderla o explotarla con fines de lucro, deberá obtener una nueva autorización por escrito.
+            </li>
+          )}
           <li>
             Que la Producción se compromete a no utilizar dicha imagen o voz fuera del contexto de la Obra y su promoción,
             ni de forma que atente contra la dignidad o la reputación de quien la cede.
