@@ -101,7 +101,8 @@ export default function HojaLlamado() {
       </Encabezado>
 
       {/* ================= FRENTE ================= */}
-      <div className={papel + (verReverso ? ' hidden print:block' : '')}>
+      {/* hoja-carta: al imprimir se compacta para que el frente quepa en una hoja carta */}
+      <div className={papel + ' hoja-carta' + (verReverso ? ' hidden print:block' : '')}>
         {/* Encabezado: día, título y fecha */}
         <div className="bg-copal-400 text-zinc-900 px-4 py-2 flex flex-wrap items-center justify-between gap-3 rounded-t print:rounded-none">
           <div className="flex items-center gap-3">
@@ -374,7 +375,7 @@ export default function HojaLlamado() {
       </div>
 
       {/* ================= REVERSO: equipo técnico ================= */}
-      <div className={papel + ' mt-6 print:mt-0 print:break-before-page' + (verReverso ? '' : ' hidden print:block')}>
+      <div className={papel + ' hoja-carta mt-6 print:mt-0 print:break-before-page' + (verReverso ? '' : ' hidden print:block')}>
         <div className="flex items-center justify-between border-b-2 border-zinc-300 pb-2 mb-3">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-zinc-500">Llamados por departamento</p>
@@ -562,7 +563,7 @@ function CrewPorDepartamento({
                   <td className={tdPapel + ' text-xs whitespace-nowrap'}>{x.telefono}</td>
                   <td className={tdPapel + ' w-20'}>
                     <input
-                      className={inpPapel + ' !text-xs'}
+                      className={inpPapel + ' !text-xs imprimir-sugerencia'}
                       value={llamados[x.id]?.llamado || ''}
                       onChange={e => onCambio(x.id, e.target.value)}
                       placeholder={llamadoGeneral}

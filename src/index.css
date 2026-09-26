@@ -87,9 +87,84 @@ body {
   margin: 12mm;
 }
 @media print {
+  /* el margen de la hoja toma el fondo de <html>: sin esto sale un marco negro */
+  html,
   body {
-    background: white;
+    background: white !important;
     color: black;
+  }
+  html {
+    color-scheme: light; /* con "dark" el lienzo de la hoja se pinta negro */
+  }
+
+  /* Los campos de captura se imprimen como texto limpio: sin recuadro, sin
+     flechita de lista y sin los ejemplos en gris (7:00, "hora", "—") */
+  input,
+  textarea,
+  select {
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    appearance: none;
+    -webkit-appearance: none;
+    resize: none;
+  }
+  textarea {
+    field-sizing: content; /* la altura justa del texto, no la del recuadro */
+    min-height: 0 !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: transparent !important;
+  }
+  /* excepción: el llamado del crew que hereda el llamado general */
+  .imprimir-sugerencia::placeholder {
+    color: #18181b !important;
+  }
+
+  /* Hoja de llamado: se compacta para que el frente quepa en una carta */
+  .hoja-carta {
+    zoom: 0.7;
+  }
+  .hoja-carta td,
+  .hoja-carta th {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+  .hoja-carta input,
+  .hoja-carta select,
+  .hoja-carta textarea {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 1.3 !important;
+    height: auto !important;
+  }
+  .hoja-carta .p-3 {
+    padding: 6px 8px !important;
+  }
+  .hoja-carta h3 {
+    margin-top: 8px !important;
+  }
+  /* menos aire entre bloques: en papel cada renglón cuenta */
+  .hoja-carta .mt-6,
+  .hoja-carta .mt-5,
+  .hoja-carta .mt-4,
+  .hoja-carta .mt-3 {
+    margin-top: 6px !important;
+  }
+  .hoja-carta .mb-3,
+  .hoja-carta .mb-2 {
+    margin-bottom: 3px !important;
+  }
+  .hoja-carta .gap-3,
+  .hoja-carta .gap-4 {
+    gap: 6px !important;
+  }
+  .hoja-carta .space-y-2 > * + *,
+  .hoja-carta .space-y-3 > * + * {
+    margin-top: 3px !important;
   }
   /* que los colores y logos sí salgan impresos */
   * {
