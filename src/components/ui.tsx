@@ -1,5 +1,5 @@
 // ===== Piezas de interfaz reutilizables y clases de estilo compartidas =====
-import { useId, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import logoPlasmaPapel from '../assets/logo-plasma-papel.png'
 import logoCopal from '../assets/logo-copal.svg'
 
@@ -9,22 +9,23 @@ export const TURQUESA = '#00a39b'
 export const AMARILLO = '#ffea00'
 
 // Grequita de trazo, la misma que remata el sitio de Plasma en Corto:
-// una línea escalonada que se repite a lo ancho.
+// una línea escalonada de escalones cuadrados (10 × 10) que se repite a lo ancho.
+// Se dibuja como UNA sola línea continua y no como mosaico (<pattern>): el
+// mosaico se deformaba al imprimir, porque al reducir la hoja se
+// desalineaban las uniones entre piezas.
+const PERIODO = 40
+const REPETICIONES = 90 // 3600 px: sobra para cualquier pantalla u hoja
+const TRAZO_GRECA = Array.from({ length: REPETICIONES }, (_, k) => {
+  const o = k * PERIODO
+  // mismo trazo que el del sitio (M0,20 L0,10 L10,10 L10,0 …), metido 1 px
+  // arriba y abajo para que el grosor de la línea no se recorte
+  return `M${o},19 L${o},10 L${o + 10},10 L${o + 10},1 L${o + 20},1 L${o + 20},19 L${o + 30},19 L${o + 30},10 L${o + 40},10 L${o + 40},1`
+}).join(' ')
+
 export function Greca({ className = '', color = TURQUESA }: { className?: string; color?: string }) {
-  const id = useId().replace(/:/g, '')
   return (
-    <svg className={className} height="14" width="100%" aria-hidden="true">
-      <defs>
-        <pattern id={`greca-${id}`} width="40" height="14" patternUnits="userSpaceOnUse">
-          <path
-            d="M0,13 L0,7 L10,7 L10,1 L20,1 L20,13 L30,13 L30,7 L40,7 L40,1"
-            fill="none"
-            stroke={color}
-            strokeWidth="2"
-          />
-        </pattern>
-      </defs>
-      <rect width="100%" height="14" fill={`url(#greca-${id})`} />
+    <svg className={`block overflow-hidden ${className}`} height="20" width="100%" aria-hidden="true">
+      <path d={TRAZO_GRECA} fill="none" stroke={color} strokeWidth="2" />
     </svg>
   )
 }
