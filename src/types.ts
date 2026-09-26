@@ -240,6 +240,7 @@ export interface Proyecto {
   finRodaje: string
   estado: EstadoProyecto
   creado: string
+  modificado?: string // último cambio (para saber si hace falta respaldar)
   escenas: Escena[]
   presupuesto: LineaPresupuesto[]
   diasRodaje: DiaRodaje[]

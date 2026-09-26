@@ -3,8 +3,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { Badge, Greca, btn, btnSec, inp, tarjeta } from '../components/ui'
-import { descargarArchivo } from '../utils'
-import type { Proyecto } from '../types'
+import { descargarRespaldo, haceCuanto, necesitaRespaldo } from '../respaldo'
 // Los logos se importan para que queden dentro del archivo suelto
 // (el de doble clic) y no dependan de imágenes aparte
 import logoPlasma from '../assets/logo-plasma.png'
@@ -23,6 +22,8 @@ export default function Proyectos() {
   const duplicarProyecto = useStore(s => s.duplicarProyecto)
   const eliminarProyecto = useStore(s => s.eliminarProyecto)
   const importarProyecto = useStore(s => s.importarProyecto)
+  const respaldos = useStore(s => s.respaldos)
+  const pospuestos = useStore(s => s.pospuestos)
   const [nombre, setNombre] = useState('')
   const nav = useNavigate()
   // ¿se está usando desde internet, o es el archivo abierto con doble clic?
@@ -48,9 +49,6 @@ export default function Proyectos() {
       alert('El archivo no es un respaldo válido de proyecto')
     }
   }
-
-  const exportar = (p: Proyecto) =>
-    descargarArchivo(`${p.nombre}.json`, JSON.stringify(p, null, 2), 'application/json')
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -114,6 +112,13 @@ export default function Proyectos() {
               {p.escenas.length} escenas · {p.diasRodaje.length} días de rodaje · {p.personas.length} personas
             </p>
             {p.director && <p className="text-xs text-zinc-500">Dir. {p.director}</p>}
+            {necesitaRespaldo(p, respaldos[p.id], pospuestos[p.id]) ? (
+              <p className="text-xs text-rosa-300">
+                💾 {respaldos[p.id] ? `Último respaldo ${haceCuanto(respaldos[p.id])} — ya toca otro` : 'Sin respaldo todavía'}
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500">💾 Último respaldo: {haceCuanto(respaldos[p.id])}</p>
+            )}
             <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
               <Link to={`/p/${p.id}`} className={btn + ' !px-2.5 !py-1 !text-xs'}>
                 Abrir
@@ -121,7 +126,7 @@ export default function Proyectos() {
               <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => duplicarProyecto(p.id)}>
                 Duplicar
               </button>
-              <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => exportar(p)} title="Descargar respaldo JSON">
+              <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => descargarRespaldo(p)} title="Descargar respaldo JSON">
                 ⬇ Respaldo
               </button>
               <button

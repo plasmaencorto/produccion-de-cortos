@@ -115,6 +115,10 @@ interface Store {
   proyectos: Proyecto[]
   activoId: string | null
   soloLectura: boolean
+  respaldos: Record<string, string> // id de proyecto -> fecha del último respaldo descargado
+  pospuestos: Record<string, string> // id de proyecto -> no recordar el respaldo antes de esta fecha
+  marcarRespaldo: (id: string) => void
+  posponerRespaldo: (id: string, dias: number) => void
   setActivo: (id: string | null) => void
   setSoloLectura: (v: boolean) => void
   crearProyecto: (nombre: string) => string
@@ -138,13 +142,23 @@ export const useStore = create<Store>()(
       const mutar = (fn: (p: Proyecto) => Proyecto) => {
         const { soloLectura, activoId } = get()
         if (soloLectura || !activoId) return
-        set(s => ({ proyectos: s.proyectos.map(p => (p.id === activoId ? fn(p) : p)) }))
+        const ahora = new Date().toISOString()
+        set(s => ({
+          proyectos: s.proyectos.map(p => (p.id === activoId ? { ...fn(p), modificado: ahora } : p)),
+        }))
       }
 
       return {
         proyectos: [],
         activoId: null,
         soloLectura: false,
+        respaldos: {},
+        pospuestos: {},
+        marcarRespaldo: id => set(s => ({ respaldos: { ...s.respaldos, [id]: new Date().toISOString() } })),
+        posponerRespaldo: (id, dias) =>
+          set(s => ({
+            pospuestos: { ...s.pospuestos, [id]: new Date(Date.now() + dias * 86400000).toISOString() },
+          })),
         setActivo: id => set({ activoId: id }),
         setSoloLectura: v => set({ soloLectura: v }),
 
@@ -167,8 +181,15 @@ export const useStore = create<Store>()(
             proyectos: s.proyectos.filter(p => p.id !== id),
             activoId: s.activoId === id ? null : s.activoId,
           })),
+        // lo importado viene de un archivo de respaldo, así que cuenta como respaldado
         importarProyecto: p =>
-          set(s => ({ proyectos: [...s.proyectos, { ...normalizarProyecto(p), id: uid() }] })),
+          set(s => {
+            const nuevo = { ...normalizarProyecto(p), id: uid() }
+            return {
+              proyectos: [...s.proyectos, nuevo],
+              respaldos: { ...s.respaldos, [nuevo.id]: new Date().toISOString() },
+            }
+          }),
 
         actualizarActivo: patch => mutar(p => ({ ...p, ...patch })),
         mutarActivo: mutar,
@@ -221,12 +242,19 @@ export const useStore = create<Store>()(
       // Al cargar datos guardados con una versión anterior, se completan los
       // campos nuevos para que ninguna pantalla se rompa
       migrate: (guardado: unknown) => {
-        const s = (guardado ?? {}) as { proyectos?: Partial<Proyecto>[]; activoId?: string | null }
+        const s = (guardado ?? {}) as {
+          proyectos?: Partial<Proyecto>[]
+          activoId?: string | null
+          respaldos?: Record<string, string>
+          pospuestos?: Record<string, string>
+        }
         return {
           ...s,
           proyectos: (s.proyectos ?? []).map(normalizarProyecto),
           activoId: s.activoId ?? null,
           soloLectura: false,
+          respaldos: s.respaldos ?? {},
+          pospuestos: s.pospuestos ?? {},
         }
       },
     },
