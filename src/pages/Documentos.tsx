@@ -241,7 +241,7 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
           </li>
           <li>
             Que esta autorización comprende la exhibición de la Obra con fines culturales y educativos: festivales,
-            muestras y concursos; funciones en escuelas, cineclubes, foros y espacios culturales; plataformas digitales y
+            muestras y concursos; salas de cine; funciones en escuelas, cineclubes, foros y espacios culturales; plataformas digitales y
             redes sociales; portafolios de quienes participaron; y la promoción de la Obra y de su equipo creativo, en
             cualquier formato, en todo el mundo y <D>{vigencia}</D>.
           </li>
