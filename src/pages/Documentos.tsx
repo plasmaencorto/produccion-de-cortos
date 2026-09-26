@@ -5,17 +5,12 @@
 import { useState, type ReactNode } from 'react'
 import { useProyecto, useStore } from '../store'
 import { Campo, Encabezado, FirmaCasa, Vacio, btn, btnSec, inp, papel, tarjeta } from '../components/ui'
-import { dinero, num } from '../utils'
+import { dinero, hoyLocal, num } from '../utils'
 import { dayOutOfDays, diasOrdenados, elenco, personasTotal, tarifaDiaria, tecnicos } from '../helpers'
 import type { Locacion, Persona, Proyecto } from '../types'
 
 type Tipo = 'imagen' | 'locacion'
 
-// fecha de hoy en la hora local (toISOString daría la de Greenwich y por la noche saldría "mañana")
-const hoy = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 // "2026-10-05" -> "5 de octubre de 2026"
 function fechaLarga(iso: string): string {
@@ -51,7 +46,7 @@ export default function Documentos() {
   const [tipo, setTipo] = useState<Tipo>('imagen')
   // Datos comunes
   const [ciudad, setCiudad] = useState('Torreón, Coahuila')
-  const [fecha, setFecha] = useState(hoy())
+  const [fecha, setFecha] = useState(hoyLocal())
   const [productora, setProductora] = useState('')
   if (!p) return null
 
@@ -64,8 +59,8 @@ export default function Documentos() {
       </Encabezado>
 
       <div className="bg-copal-500/10 border border-copal-700/60 rounded-lg px-3 py-2 text-sm text-zinc-300 mb-4 print:hidden">
-        ⚖️ Son <b>machotes de referencia</b> para producciones escolares e independientes. No sustituyen la asesoría de
-        un abogado: si tu corto tiene fines comerciales o un caso especial, pide que los revisen.
+        ⚖️ Son <b>machotes de referencia</b> para cortometrajes con <b>fines culturales y educativos, sin fines de
+        lucro</b>. No sustituyen la asesoría de un abogado: si tienes un caso especial, pide que los revisen.
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4 print:hidden">
@@ -235,7 +230,8 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
           <li>
             Que {menor ? 'la persona menor a mi cargo participa' : 'participo'} en el cortometraje titulado{' '}
             <D>«{p.nombre}»</D> (en adelante, «la Obra»), dirigido por <D>{p.director}</D> y producido por{' '}
-            <D>{responsable}</D> (en adelante, «la Producción»), {funcion}.
+            <D>{responsable}</D> (en adelante, «la Producción»), {funcion}. La Obra es una producción con fines
+            culturales y educativos, sin fines de lucro.
           </li>
           <li>
             Que autorizo a la Producción, de manera expresa y {contraprestacion}, a fijar, reproducir, editar, doblar,
@@ -244,9 +240,14 @@ function CesionImagen({ p, ciudad, fecha, responsable, onFirmado }: Comunes & { 
             en fotografías fijas, material detrás de cámaras y material promocional de la misma.
           </li>
           <li>
-            Que esta autorización comprende su uso en festivales, muestras y concursos; salas de cine; televisión;
-            plataformas digitales y redes sociales; exhibiciones con fines educativos y culturales; y la promoción de la
-            Obra y de su equipo creativo, en cualquier formato, en todo el mundo y <D>{vigencia}</D>.
+            Que esta autorización comprende la exhibición de la Obra con fines culturales y educativos: festivales,
+            muestras y concursos; funciones en escuelas, cineclubes, foros y espacios culturales; plataformas digitales y
+            redes sociales; portafolios de quienes participaron; y la promoción de la Obra y de su equipo creativo, en
+            cualquier formato, en todo el mundo y <D>{vigencia}</D>.
+          </li>
+          <li>
+            Que esta autorización no incluye la explotación comercial de la Obra. Si en el futuro la Producción deseara
+            venderla o explotarla con fines de lucro, deberá obtener una nueva autorización por escrito.
           </li>
           <li>
             Que la Producción se compromete a no utilizar dicha imagen o voz fuera del contexto de la Obra y su promoción,
@@ -343,8 +344,8 @@ function AutorizacionLocacion({ p, ciudad, fecha, responsable, onFirmado }: Comu
             En <D>{ciudad}</D>, a <D>{fechaLarga(fecha)}</D>, <D>{l.contactoNombre}</D>, en su carácter de{' '}
             <D>{caracter}</D> del inmueble conocido como <D>{l.nombre}</D>, ubicado en <D>{l.direccion}</D> (en
             adelante, «la Locación»), autoriza a <D>{responsable}</D>, responsable de la producción del cortometraje{' '}
-            <D>«{p.nombre}»</D> (en adelante, «la Producción»), a ingresar y filmar en la Locación bajo las siguientes
-            condiciones:
+            <D>«{p.nombre}»</D> (en adelante, «la Producción»), obra con fines culturales y educativos, sin fines de lucro, a
+            ingresar y filmar en la Locación bajo las siguientes condiciones:
           </p>
           <ol className="list-decimal pl-5 space-y-2 mb-6">
             <li>
@@ -372,8 +373,8 @@ function AutorizacionLocacion({ p, ciudad, fecha, responsable, onFirmado }: Comu
             </li>
             <li>
               <b>Imagen de la Locación:</b> la Producción podrá mostrar la Locación —su fachada, interiores y los
-              elementos visibles en ella— en la Obra y en su material promocional, en cualquier medio, en todo el mundo y
-              por tiempo indefinido, sin revelar la dirección exacta salvo acuerdo de las partes. Para efectos de la
+              elementos visibles en ella— en la Obra y en su material promocional, en exhibiciones con fines culturales
+              y educativos por cualquier medio, en todo el mundo y por tiempo indefinido, sin revelar la dirección exacta salvo acuerdo de las partes. Para efectos de la
               ficción, podrá cambiarse el nombre o la apariencia del lugar.
             </li>
             <li>
