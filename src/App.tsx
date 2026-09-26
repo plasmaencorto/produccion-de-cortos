@@ -15,6 +15,7 @@ import Personas from './pages/Personas'
 import Locaciones from './pages/Locaciones'
 import Equipamiento from './pages/Equipamiento'
 import Reportes from './pages/Reportes'
+import Documentos from './pages/Documentos'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="personas" element={<Personas />} />
           <Route path="locaciones" element={<Locaciones />} />
           <Route path="equipamiento" element={<Equipamiento />} />
+          <Route path="documentos" element={<Documentos />} />
           <Route path="reportes" element={<Reportes />} />
         </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
