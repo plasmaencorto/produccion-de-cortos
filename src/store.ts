@@ -1,4 +1,5 @@
 // ===== Estado global con Zustand + guardado automático en localStorage =====
+import { useRef, type FocusEvent } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type {
@@ -91,6 +92,53 @@ export function normalizarProyecto(p: Partial<Proyecto>): Proyecto {
   }
 }
 
+// ---- Nombres de personas repetidos en el proyecto ----
+// Las escenas y la hoja de llamado apuntan a las personas por id, pero hay
+// campos de texto libre donde se escribe el nombre a mano (director, responsable,
+// solicitante…). Al renombrar a alguien en un lugar, se cambia en todos.
+
+// Colecciones que se editan en ventana con botón "Guardar": el cambio de nombre
+// se propaga al guardar. (Los campos que se editan en línea usan usePropagarNombre.)
+const CAMPOS_NOMBRE: Partial<Record<keyof Colecciones, string[]>> = {
+  personas: ['nombre'],
+  equipos: ['responsable'],
+  solicitudes: ['solicitante', 'proveedor'],
+  gastos: ['proveedor'],
+  locaciones: ['contactoNombre'],
+}
+
+const mismoNombre = (a: string, b: string) =>
+  a.trim().localeCompare(b.trim(), 'es', { sensitivity: 'base' }) === 0
+
+// Cambia `anterior` por `nuevo` en cada campo de nombre que coincida exactamente
+// (sin importar mayúsculas ni acentos). Devuelve el mismo proyecto si no hay nada que cambiar.
+export function renombrarEnProyecto(p: Proyecto, anterior: string, nuevo: string): Proyecto {
+  const nuevoLimpio = nuevo.trim()
+  if (!anterior.trim() || !nuevoLimpio || anterior.trim() === nuevoLimpio) return p
+  let cambio = false
+  const r = (v: string | undefined) => {
+    if (v && mismoNombre(v, anterior)) {
+      cambio = true
+      return nuevoLimpio
+    }
+    return v ?? ''
+  }
+  const copia: Proyecto = {
+    ...p,
+    director: r(p.director),
+    productor: r(p.productor),
+    primerAD: r(p.primerAD),
+    personas: p.personas.map(x => ({ ...x, nombre: r(x.nombre) })),
+    equipos: p.equipos.map(x => ({ ...x, responsable: r(x.responsable) })),
+    solicitudes: p.solicitudes.map(x => ({ ...x, solicitante: r(x.solicitante), proveedor: r(x.proveedor) })),
+    gastos: p.gastos.map(x => ({ ...x, proveedor: r(x.proveedor) })),
+    locaciones: p.locaciones.map(x => ({ ...x, contactoNombre: r(x.contactoNombre) })),
+    presupuesto: p.presupuesto.map(x => ({ ...x, proveedor: r(x.proveedor) })),
+    postproduccion: (p.postproduccion ?? []).map(x => ({ ...x, responsable: r(x.responsable) })),
+  }
+  return cambio ? copia : p
+}
+
 // Las comidas del día, en el orden del machote profesional
 export const COMIDAS = ['Desayuno', 'Café', 'Snack fuerte', 'Comida', 'Snack ligero', 'Cena']
 
@@ -140,6 +188,7 @@ interface Store {
   eliminar: <K extends keyof Colecciones>(col: K, id: string) => void
   setCallSheet: (diaId: string, patch: Partial<CallSheet>) => void
   setReporteDiario: (diaId: string, patch: Partial<ReporteDia>) => void
+  renombrarPersona: (anterior: string, nuevo: string) => void
 }
 
 export const useStore = create<Store>()(
@@ -205,13 +254,22 @@ export const useStore = create<Store>()(
         // (p[col] ?? []) protege proyectos guardados antes de agregar colecciones nuevas
         agregar: (col, item) => mutar(p => ({ ...p, [col]: [...(p[col] ?? []), item] }) as Proyecto),
         actualizar: (col, id, patch) =>
-          mutar(
-            p =>
-              ({
-                ...p,
-                [col]: ((p[col] ?? []) as { id: string }[]).map(i => (i.id === id ? { ...i, ...patch } : i)),
-              }) as Proyecto,
-          ),
+          mutar(p => {
+            const previo = ((p[col] ?? []) as unknown as Record<string, unknown>[]).find(i => i.id === id)
+            let nuevo = {
+              ...p,
+              [col]: ((p[col] ?? []) as { id: string }[]).map(i => (i.id === id ? { ...i, ...patch } : i)),
+            } as Proyecto
+            // Si en esta ventana cambió un nombre, se cambia en todo el proyecto
+            for (const campo of CAMPOS_NOMBRE[col] ?? []) {
+              const antes = previo?.[campo]
+              const despues = (patch as Record<string, unknown>)[campo]
+              if (typeof antes === 'string' && typeof despues === 'string') {
+                nuevo = renombrarEnProyecto(nuevo, antes, despues)
+              }
+            }
+            return nuevo
+          }),
         eliminar: (col, id) =>
           mutar(
             p =>
@@ -242,6 +300,10 @@ export const useStore = create<Store>()(
               },
             }
           }),
+        renombrarPersona: (anterior, nuevo) => {
+          const p = get().proyectos.find(x => x.id === get().activoId)
+          if (p && renombrarEnProyecto(p, anterior, nuevo) !== p) mutar(q => renombrarEnProyecto(q, anterior, nuevo))
+        },
       }
     },
     {
@@ -271,3 +333,15 @@ export const useStore = create<Store>()(
 
 // Hook: el proyecto activo (o undefined)
 export const useProyecto = () => useStore(s => s.proyectos.find(p => p.id === s.activoId))
+
+// Hook para los campos de nombre que se editan en línea (sin botón "Guardar"):
+// recuerda el nombre al entrar al campo y, al salir, lo cambia en todo el proyecto.
+// No se propaga letra por letra para no arrastrar nombres a medio escribir.
+export function usePropagarNombre() {
+  const renombrar = useStore(s => s.renombrarPersona)
+  const antes = useRef('')
+  return {
+    onFocus: (e: FocusEvent<HTMLInputElement>) => { antes.current = e.currentTarget.value },
+    onBlur: (e: FocusEvent<HTMLInputElement>) => renombrar(antes.current, e.currentTarget.value),
+  }
+}

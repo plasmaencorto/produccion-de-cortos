@@ -2,7 +2,7 @@
 // Formato del machote profesional: cantidad × multiplicador (×) × tarifa = subtotal (+ IVA 16%)
 import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useProyecto, useStore } from '../store'
+import { useProyecto, usePropagarNombre, useStore } from '../store'
 import { Encabezado, btnSec, inpMini, tarjeta, td, th } from '../components/ui'
 import { aCSV, descargarArchivo, dinero, num, uid } from '../utils'
 import {
@@ -136,6 +136,7 @@ function Categoria({
 }) {
   const actualizar = useStore(s => s.actualizar)
   const eliminar = useStore(s => s.eliminar)
+  const propagarNombre = usePropagarNombre()
   // Las cuentas sin líneas empiezan cerradas para no saturar la pantalla
   const tieneLineas = p.presupuesto.some(l => l.categoria === categoria)
   const [abierta, setAbierta] = useState(tieneLineas)
@@ -254,7 +255,7 @@ function Categoria({
                             {dinero(d)}
                           </td>
                           <td className={td + ' min-w-24'}>
-                            <input className={inpMini} value={l.proveedor}
+                            <input className={inpMini} value={l.proveedor} {...propagarNombre}
                               onChange={e => actualizar('presupuesto', l.id, { proveedor: e.target.value })} />
                           </td>
                           <td className={td + ' min-w-24'}>
