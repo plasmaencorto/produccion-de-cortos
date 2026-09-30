@@ -201,6 +201,10 @@ export function estadoActorEnDia(p: Proyecto, actorId: string, diaId: string): E
 // Tarifa por día (si la unidad de la tarifa es por día/jornada)
 export const tarifaDiaria = (x: Persona) => (/d[ií]a|jornada/i.test(x.unidadTarifa || '') ? x.tarifa || 0 : 0)
 
+// Total comprobado con factura/ticket en Gastos para una cuenta del presupuesto
+export const comprobadoCategoria = (p: Proyecto, categoria: string) =>
+  (p.gastos ?? []).filter(g => g.cuenta === categoria).reduce((t, g) => t + totalGasto(g), 0)
+
 // ---- Presupuesto contra lo gastado (Control de Gastos) ----
 export const ivaSolicitud = (s: Solicitud) => (s.iva ? (s.subtotal || 0) * IVA : 0)
 export const totalSolicitud = (s: Solicitud) => (s.subtotal || 0) + ivaSolicitud(s)

@@ -7,6 +7,7 @@ import { Encabezado, btnSec, inpMini, tarjeta, td, th } from '../components/ui'
 import { aCSV, descargarArchivo, dinero, num, uid } from '../utils'
 import {
   categoriasExtra,
+  comprobadoCategoria,
   esCuentaDePersonal,
   estimadoLinea,
   ivaLinea,
@@ -26,12 +27,28 @@ import type { Proyecto } from '../types'
 export default function Presupuesto() {
   const p = useProyecto()
   const agregar = useStore(s => s.agregar)
+  const [filtro, setFiltro] = useState('')
+  const [compacto, setCompacto] = useState(false)
   if (!p) return null
 
   const tot = totalesProyecto(p)
   const dif = tot.estimado - tot.real
   // Categorías de proyectos viejos que no están en la plantilla nueva
   const extras = categoriasExtra(p, PLANTILLA_PRESUPUESTO)
+
+  // Filtra una categoría por nombre o por descripciones de sus líneas
+  const coincide = (categoria: string) => {
+    if (!filtro) return true
+    const q = filtro.toLowerCase()
+    if (categoria.toLowerCase().includes(q)) return true
+    return p.presupuesto.some(l =>
+      l.categoria === categoria && (
+        l.descripcion.toLowerCase().includes(q) ||
+        l.subcategoria.toLowerCase().includes(q) ||
+        (l.proveedor || '').toLowerCase().includes(q)
+      )
+    )
+  }
 
   const agregarLinea = (categoria: string, subcategoria: string) =>
     agregar('presupuesto', {
@@ -65,6 +82,20 @@ export default function Presupuesto() {
   return (
     <>
       <Encabezado titulo="Presupuesto" subtitulo="Cuentas numeradas estilo industria · cantidad × multiplicador × tarifa, con IVA opcional">
+        <input
+          type="search"
+          placeholder="🔍 Buscar cuenta o partida…"
+          value={filtro}
+          onChange={e => setFiltro(e.target.value)}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-copal-500 w-52"
+        />
+        <button
+          className={btnSec + (compacto ? ' !bg-copal-500/20 !text-copal-300 !border-copal-500/40' : '')}
+          onClick={() => setCompacto(!compacto)}
+          title="Oculta las columnas Proveedor y Notas para ver más cómodamente"
+        >
+          {compacto ? '⬛ Compacto' : '⬜ Compacto'}
+        </button>
         <button className={btnSec} onClick={exportarCSV}>⬇ Exportar CSV (Excel)</button>
         <Link className={btnSec} to={`/p/${p.id}/reportes?tipo=presupuesto`}>🖨 Imprimir / PDF</Link>
       </Encabezado>
@@ -106,15 +137,23 @@ export default function Presupuesto() {
         columna 👤 en las cuentas de personal (1000–1600); ese número alimenta el catering, los radios y el transporte.
       </p>
 
-      {PLANTILLA_PRESUPUESTO.map(c => (
-        <Categoria key={c.categoria} p={p} categoria={c.categoria} subcategorias={c.subcategorias} onAgregar={agregarLinea} />
+      {filtro && (
+        <p className="text-xs text-zinc-500 mb-3">
+          Mostrando cuentas que coinciden con «<span className="text-copal-300">{filtro}</span>»
+          {' · '}
+          <button onClick={() => setFiltro('')} className="text-zinc-400 hover:text-zinc-200 underline cursor-pointer">Limpiar</button>
+        </p>
+      )}
+
+      {PLANTILLA_PRESUPUESTO.filter(c => coincide(c.categoria)).map(c => (
+        <Categoria key={c.categoria} p={p} categoria={c.categoria} subcategorias={c.subcategorias} onAgregar={agregarLinea} comprobado={comprobadoCategoria(p, c.categoria)} compacto={compacto} />
       ))}
 
       {extras.length > 0 && (
         <>
           <h2 className="text-sm font-semibold text-zinc-400 mb-2 mt-6">Otras partidas (de la versión anterior del presupuesto)</h2>
-          {extras.map(cat => (
-            <Categoria key={cat} p={p} categoria={cat} subcategorias={subcategoriasDe(p, cat)} onAgregar={agregarLinea} />
+          {extras.filter(coincide).map(cat => (
+            <Categoria key={cat} p={p} categoria={cat} subcategorias={subcategoriasDe(p, cat)} onAgregar={agregarLinea} comprobado={comprobadoCategoria(p, cat)} compacto={compacto} />
           ))}
         </>
       )}
@@ -128,14 +167,19 @@ function Categoria({
   categoria,
   subcategorias,
   onAgregar,
+  comprobado = 0,
+  compacto = false,
 }: {
   p: Proyecto
   categoria: string
   subcategorias: string[]
   onAgregar: (cat: string, sub: string) => void
+  comprobado?: number
+  compacto?: boolean
 }) {
   const actualizar = useStore(s => s.actualizar)
   const eliminar = useStore(s => s.eliminar)
+  const agregar = useStore(s => s.agregar)
   // Las cuentas sin líneas empiezan cerradas para no saturar la pantalla
   const tieneLineas = p.presupuesto.some(l => l.categoria === categoria)
   const [abierta, setAbierta] = useState(tieneLineas)
@@ -171,21 +215,30 @@ function Categoria({
           </span>
           <span className="text-zinc-100">{nombreCuenta || categoria}</span>
         </span>
-        <span className="text-xs text-zinc-400 whitespace-nowrap">
-          {esPersonal && gente > 0 && <span className="text-copal-300/80 mr-2">👥 {gente}</span>}
-          Total {dinero(t.estimado)} · Gastado {dinero(t.real)} <span className="ml-1">{abierta ? '▾' : '▸'}</span>
+        <span className="text-xs text-zinc-400 whitespace-nowrap flex items-center gap-2">
+          {esPersonal && gente > 0 && <span className="text-copal-300/80">👥 {gente}</span>}
+          <span>Total {dinero(t.estimado)}</span>
+          <span>· Real {dinero(t.real)}</span>
+          {comprobado > 0 && (
+            <span className="text-teal-400/80" title="Total comprobado con factura/ticket en Control de Gastos">
+              · 🧾 {dinero(comprobado)}
+            </span>
+          )}
+          <span>{abierta ? '▾' : '▸'}</span>
         </span>
       </button>
 
       {abierta && (
         <div className="overflow-x-auto border-t border-zinc-800">
-          <table className="w-full min-w-[1100px]">
+          <table className={`w-full ${compacto ? 'min-w-[780px]' : 'min-w-[1100px]'}`}>
             <thead>
               <tr>
                 {[
                   'Descripción', 'Cant.', 'Unidad', '×',
                   ...(esPersonal ? ['👤 Personas'] : []),
-                  'Tarifa', 'Subtotal', 'IVA', 'Total', 'Real', 'Diferencia', 'Proveedor', 'Notas', '',
+                  'Tarifa', 'Subtotal', 'IVA', 'Total', 'Real', 'Diferencia',
+                  ...(!compacto ? ['Proveedor', 'Notas'] : []),
+                  '',
                 ].map(h => (
                   <th key={h} className={th}>{h}</th>
                 ))}
@@ -197,7 +250,7 @@ function Categoria({
                 return (
                   <Fragment key={sub}>
                     <tr className="bg-zinc-800/40">
-                      <td colSpan={esPersonal ? 13 : 12} className="px-2 py-1 text-xs font-semibold text-copal-300/90">{sub}</td>
+                      <td colSpan={compacto ? (esPersonal ? 11 : 10) : (esPersonal ? 13 : 12)} className="px-2 py-1 text-xs font-semibold text-copal-300/90">{sub}</td>
                       <td className="px-2 py-1 text-right">
                         <button onClick={() => onAgregar(categoria, sub)} className="text-copal-400 hover:text-copal-300 text-xs whitespace-nowrap">
                           + línea
@@ -253,18 +306,31 @@ function Categoria({
                           <td className={`${td} text-right whitespace-nowrap font-medium ${d < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                             {dinero(d)}
                           </td>
-                          <td className={td + ' min-w-24'}>
-                            <input className={inpMini} value={l.proveedor}
-                              onChange={e => actualizar('presupuesto', l.id, { proveedor: e.target.value })} />
-                          </td>
-                          <td className={td + ' min-w-24'}>
-                            <input className={inpMini} value={l.notas}
-                              onChange={e => actualizar('presupuesto', l.id, { notas: e.target.value })} />
-                          </td>
+                          {!compacto && (
+                            <>
+                              <td className={td + ' min-w-24'}>
+                                <input className={inpMini} value={l.proveedor}
+                                  onChange={e => actualizar('presupuesto', l.id, { proveedor: e.target.value })} />
+                              </td>
+                              <td className={td + ' min-w-24'}>
+                                <input className={inpMini} value={l.notas}
+                                  onChange={e => actualizar('presupuesto', l.id, { notas: e.target.value })} />
+                              </td>
+                            </>
+                          )}
                           <td className={td}>
-                            <button onClick={() => eliminar('presupuesto', l.id)} className="text-zinc-500 hover:text-red-400" title="Eliminar línea">
-                              🗑
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => agregar('presupuesto', { ...l, id: uid() })}
+                                className="text-zinc-500 hover:text-copal-400 text-xs"
+                                title="Duplicar línea"
+                              >
+                                ⧉
+                              </button>
+                              <button onClick={() => eliminar('presupuesto', l.id)} className="text-zinc-500 hover:text-red-400" title="Eliminar línea">
+                                🗑
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )
@@ -292,7 +358,7 @@ function Categoria({
                 <td className={`${td} text-right font-bold whitespace-nowrap ${t.estimado - t.real < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                   {dinero(t.estimado - t.real)}
                 </td>
-                <td colSpan={3} />
+                <td colSpan={compacto ? 1 : 3} />
               </tr>
             </tbody>
           </table>
