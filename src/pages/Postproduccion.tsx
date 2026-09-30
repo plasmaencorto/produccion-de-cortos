@@ -3,7 +3,7 @@
 // música, créditos y el master final. Aquí se sigue cada etapa con su
 // responsable y fecha de entrega, y la lista de archivos finales.
 import { useState } from 'react'
-import { useProyecto, useStore } from '../store'
+import { useProyecto, usePropagarNombre, useStore } from '../store'
 import { Badge, Encabezado, FirmaCasa, Vacio, btn, btnSec, inpMini, papel, tarjeta, tdPapel, thPapel } from '../components/ui'
 import { dinero, fechaBonita, hoyLocal, sumarDias, uid } from '../utils'
 import { ejercidoPorCuenta } from '../helpers'
@@ -214,6 +214,7 @@ export default function Postproduccion() {
 // --- Una etapa (editable) ---
 function FilaEtapa({ e }: { e: EtapaPost }) {
   const actualizar = useStore(s => s.actualizar)
+  const propagarNombre = usePropagarNombre()
   const eliminar = useStore(s => s.eliminar)
   const set = (patch: Partial<EtapaPost>) => actualizar('postproduccion', e.id, patch)
   const tarde = atrasada(e)
@@ -238,7 +239,7 @@ function FilaEtapa({ e }: { e: EtapaPost }) {
       </div>
       <label className="text-[11px] text-zinc-500">
         Responsable
-        <input className={inpMini} value={e.responsable} onChange={ev => set({ responsable: ev.target.value })} placeholder="Nombre" />
+        <input className={inpMini} value={e.responsable} {...propagarNombre} onChange={ev => set({ responsable: ev.target.value })} placeholder="Nombre" />
       </label>
       <label className="text-[11px] text-zinc-500">
         Inicio

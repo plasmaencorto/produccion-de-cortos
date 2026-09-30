@@ -1,6 +1,6 @@
 // ===== Dashboard: vista general del proyecto =====
 import { Link } from 'react-router-dom'
-import { useProyecto, useStore } from '../store'
+import { useProyecto, usePropagarNombre, useStore } from '../store'
 import { Badge, Campo, Encabezado, btnSec, inp, tarjeta } from '../components/ui'
 import { archivoAImagen, dinero, fechaBonita, hoyLocal } from '../utils'
 import {
@@ -27,6 +27,7 @@ const ESTADOS: EstadoProyecto[] = ['En Preproducción', 'En Rodaje', 'En Postpro
 export default function Dashboard() {
   const p = useProyecto()
   const actualizar = useStore(s => s.actualizarActivo)
+  const propagarNombre = usePropagarNombre()
   if (!p) return null
 
   // Progreso de rodaje
@@ -112,13 +113,13 @@ export default function Dashboard() {
             <input className={inp} value={p.nombre} onChange={e => actualizar({ nombre: e.target.value })} />
           </Campo>
           <Campo etiqueta="Director/a">
-            <input className={inp} value={p.director} onChange={e => actualizar({ director: e.target.value })} />
+            <input className={inp} value={p.director} {...propagarNombre} onChange={e => actualizar({ director: e.target.value })} />
           </Campo>
           <Campo etiqueta="Productor/a">
-            <input className={inp} value={p.productor} onChange={e => actualizar({ productor: e.target.value })} />
+            <input className={inp} value={p.productor} {...propagarNombre} onChange={e => actualizar({ productor: e.target.value })} />
           </Campo>
           <Campo etiqueta="1er Asistente de Dirección">
-            <input className={inp} value={p.primerAD} onChange={e => actualizar({ primerAD: e.target.value })} />
+            <input className={inp} value={p.primerAD} {...propagarNombre} onChange={e => actualizar({ primerAD: e.target.value })} />
           </Campo>
           <Campo etiqueta="Inicio de rodaje">
             <input type="date" className={inp} value={p.inicioRodaje} onChange={e => actualizar({ inicioRodaje: e.target.value })} />
