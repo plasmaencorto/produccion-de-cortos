@@ -342,6 +342,9 @@ function TablaGastos({ p, gastos, solicitudes }: { p: Proyecto; gastos: Gasto[];
   const eliminar = useStore(s => s.eliminar)
   const [editando, setEditando] = useState<Gasto | null>(null)
   const [esNuevo, setEsNuevo] = useState(false)
+  const [filtroDesde, setFiltroDesde] = useState('')
+  const [filtroHasta, setFiltroHasta] = useState('')
+  const [filtroCuenta, setFiltroCuenta] = useState('')
 
   const guardar = (g: Gasto) => {
     if (esNuevo) agregar('gastos', g)
@@ -349,12 +352,20 @@ function TablaGastos({ p, gastos, solicitudes }: { p: Proyecto; gastos: Gasto[];
     setEditando(null)
   }
 
-  const deducibles = gastos.filter(g => g.deducible).reduce((t, g) => t + totalGasto(g), 0)
-  const noDeducibles = gastos.filter(g => !g.deducible).reduce((t, g) => t + totalGasto(g), 0)
+  const gastosFiltrados = gastos.filter(g =>
+    (!filtroDesde || g.fecha >= filtroDesde) &&
+    (!filtroHasta || g.fecha <= filtroHasta) &&
+    (!filtroCuenta || g.cuenta === filtroCuenta)
+  )
+
+  const cuentasEnUso = [...new Set(gastos.map(g => g.cuenta))].sort()
+
+  const deducibles = gastosFiltrados.filter(g => g.deducible).reduce((t, g) => t + totalGasto(g), 0)
+  const noDeducibles = gastosFiltrados.filter(g => !g.deducible).reduce((t, g) => t + totalGasto(g), 0)
   // Total ejercido por cuenta presupuestal (como el resumen de solicitudes del machote)
-  const porCuenta = [...new Set(gastos.map(g => g.cuenta))].map(c => ({
+  const porCuenta = [...new Set(gastosFiltrados.map(g => g.cuenta))].map(c => ({
     cuenta: c,
-    total: gastos.filter(g => g.cuenta === c).reduce((t, g) => t + totalGasto(g), 0),
+    total: gastosFiltrados.filter(g => g.cuenta === c).reduce((t, g) => t + totalGasto(g), 0),
   }))
 
   const exportarCSV = () =>
@@ -382,6 +393,42 @@ function TablaGastos({ p, gastos, solicitudes }: { p: Proyecto; gastos: Gasto[];
         </span>
       </div>
 
+      {/* Filtros de fecha y cuenta */}
+      {gastos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+          <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">Filtrar:</span>
+          <div className="flex items-center gap-1 text-xs text-zinc-400">
+            <span>Del</span>
+            <input type="date" className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-copal-500"
+              value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} />
+            <span>al</span>
+            <input type="date" className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-copal-500"
+              value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} />
+          </div>
+          <select
+            className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-copal-500"
+            value={filtroCuenta}
+            onChange={e => setFiltroCuenta(e.target.value)}
+          >
+            <option value="">Todas las cuentas</option>
+            {cuentasEnUso.map(c => <option key={c} value={c}>{c.split('·')[0].trim()}</option>)}
+          </select>
+          {(filtroDesde || filtroHasta || filtroCuenta) && (
+            <button
+              onClick={() => { setFiltroDesde(''); setFiltroHasta(''); setFiltroCuenta('') }}
+              className="text-xs text-zinc-500 hover:text-zinc-200 underline cursor-pointer"
+            >
+              Limpiar filtros
+            </button>
+          )}
+          {(filtroDesde || filtroHasta || filtroCuenta) && (
+            <span className="text-xs text-copal-300 ml-auto">
+              {gastosFiltrados.length} de {gastos.length} gasto(s)
+            </span>
+          )}
+        </div>
+      )}
+
       {gastos.length === 0 ? (
         <Vacio mensaje="Aún no hay gastos comprobados. Aquí registras cada ticket o factura ya gastado, ligado a su cuenta del presupuesto." />
       ) : (
@@ -396,7 +443,7 @@ function TablaGastos({ p, gastos, solicitudes }: { p: Proyecto; gastos: Gasto[];
                 </tr>
               </thead>
               <tbody>
-                {gastos.map(g => (
+                {gastosFiltrados.map(g => (
                   <tr key={g.id} className="border-b border-zinc-800/60 hover:bg-zinc-800/40 cursor-pointer"
                     onClick={() => { setEditando(g); setEsNuevo(false) }}>
                     <td className={td + ' whitespace-nowrap'}>{g.fecha}</td>
