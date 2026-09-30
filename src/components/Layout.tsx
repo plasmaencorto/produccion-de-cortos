@@ -1,5 +1,5 @@
 // ===== Estructura general: barra lateral + contenido =====
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import Buscador from './Buscador'
@@ -31,6 +31,23 @@ export default function Layout() {
   const ultimoRespaldo = useStore(s => (id ? s.respaldos[id] : undefined))
   const pospuesto = useStore(s => (id ? s.pospuestos[id] : undefined))
   const posponerRespaldo = useStore(s => s.posponerRespaldo)
+  const papelera = useStore(s => s.papelera)
+  const restaurar = useStore(s => s.restaurar)
+  const timerUndo = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Auto-dismiss el toast de deshacer después de 5 s
+  useEffect(() => {
+    if (timerUndo.current) clearTimeout(timerUndo.current)
+    if (papelera) {
+      timerUndo.current = setTimeout(() => {
+        useStore.setState({ papelera: null })
+      }, 5000)
+    }
+    return () => {
+      if (timerUndo.current) clearTimeout(timerUndo.current)
+    }
+  }, [papelera])
+
   // En celular el menú arranca recogido, para que quepa el contenido;
   // en computadora arranca abierto
   const enCelular = () => typeof window !== 'undefined' && window.innerWidth < 768
@@ -114,6 +131,31 @@ export default function Layout() {
           )}
         </div>
       </aside>
+
+      {/* Toast de deshacer eliminación */}
+      {papelera && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-800 border border-zinc-700 shadow-xl rounded-xl px-4 py-3 text-sm print:hidden">
+          <span className="text-zinc-200">🗑 Eliminado</span>
+          <button
+            onClick={() => {
+              if (timerUndo.current) clearTimeout(timerUndo.current)
+              restaurar()
+            }}
+            className="bg-copal-500 hover:bg-copal-400 text-white font-semibold rounded-lg px-3 py-1 text-xs cursor-pointer"
+          >
+            Deshacer
+          </button>
+          <button
+            onClick={() => {
+              if (timerUndo.current) clearTimeout(timerUndo.current)
+              useStore.setState({ papelera: null })
+            }}
+            className="text-zinc-500 hover:text-zinc-300 text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <main className="flex-1 min-w-0">
         {soloLectura && (

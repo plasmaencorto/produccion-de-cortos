@@ -119,12 +119,21 @@ export function callSheetVacia(): CallSheet {
   }
 }
 
+// Papelera temporal para deshacer la última eliminación (no se persiste)
+export interface Papelera {
+  col: keyof Colecciones
+  item: Colecciones[keyof Colecciones]
+  index: number // posición original en la lista
+  proyectoId: string
+}
+
 interface Store {
   proyectos: Proyecto[]
   activoId: string | null
   soloLectura: boolean
   respaldos: Record<string, string> // id de proyecto -> fecha del último respaldo descargado
   pospuestos: Record<string, string> // id de proyecto -> no recordar el respaldo antes de esta fecha
+  papelera: Papelera | null // último ítem eliminado (para deshacer)
   marcarRespaldo: (id: string) => void
   posponerRespaldo: (id: string, dias: number) => void
   setActivo: (id: string | null) => void
@@ -138,6 +147,7 @@ interface Store {
   agregar: <K extends keyof Colecciones>(col: K, item: Colecciones[K]) => void
   actualizar: <K extends keyof Colecciones>(col: K, id: string, patch: Partial<Colecciones[K]>) => void
   eliminar: <K extends keyof Colecciones>(col: K, id: string) => void
+  restaurar: () => void // deshace la última eliminación
   setCallSheet: (diaId: string, patch: Partial<CallSheet>) => void
   setReporteDiario: (diaId: string, patch: Partial<ReporteDia>) => void
 }
@@ -162,6 +172,7 @@ export const useStore = create<Store>()(
         soloLectura: false,
         respaldos: {},
         pospuestos: {},
+        papelera: null,
         marcarRespaldo: id => set(s => ({ respaldos: { ...s.respaldos, [id]: new Date().toISOString() } })),
         posponerRespaldo: (id, dias) =>
           set(s => ({
@@ -212,14 +223,31 @@ export const useStore = create<Store>()(
                 [col]: ((p[col] ?? []) as { id: string }[]).map(i => (i.id === id ? { ...i, ...patch } : i)),
               }) as Proyecto,
           ),
-        eliminar: (col, id) =>
-          mutar(
-            p =>
-              ({
-                ...p,
-                [col]: ((p[col] ?? []) as { id: string }[]).filter(i => i.id !== id),
-              }) as Proyecto,
-          ),
+        eliminar: (col, id) => {
+          const { activoId, proyectos } = get()
+          if (!activoId) return
+          const p = proyectos.find(x => x.id === activoId)
+          if (!p) return
+          const lista = ((p[col] ?? []) as { id: string }[])
+          const index = lista.findIndex(i => i.id === id)
+          const item = lista[index]
+          if (item) set({ papelera: { col, item: item as Colecciones[keyof Colecciones], index, proyectoId: activoId } })
+          mutar(p => ({ ...p, [col]: lista.filter(i => i.id !== id) }) as Proyecto)
+        },
+        restaurar: () => {
+          const { papelera } = get()
+          if (!papelera) return
+          const { col, item, index, proyectoId } = papelera
+          set(s => ({
+            papelera: null,
+            proyectos: s.proyectos.map(p => {
+              if (p.id !== proyectoId) return p
+              const lista = [...((p[col] ?? []) as { id: string }[])]
+              lista.splice(index, 0, item as { id: string })
+              return { ...p, [col]: lista }
+            }),
+          }))
+        },
 
         setCallSheet: (diaId, patch) =>
           mutar(p => ({
@@ -247,6 +275,8 @@ export const useStore = create<Store>()(
     {
       name: 'produccion-cortos',
       version: 2,
+      // No guardar la papelera en localStorage — es solo temporal en memoria
+      partialize: ({ papelera: _p, ...rest }: Store) => rest,
       // Al cargar datos guardados con una versión anterior, se completan los
       // campos nuevos para que ninguna pantalla se rompa
       migrate: (guardado: unknown) => {
