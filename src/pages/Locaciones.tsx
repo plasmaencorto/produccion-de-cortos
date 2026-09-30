@@ -24,6 +24,13 @@ const TIPOS: TipoLocacion[] = ['Interior', 'Exterior', 'Mixto']
 const PERMISOS: EstadoPermiso[] = ['Sí', 'No', 'En trámite']
 const COLOR_PERMISO: Record<EstadoPermiso, string> = { Sí: 'verde', No: 'rojo', 'En trámite': 'amarillo' }
 
+// Tamaño aproximado de las fotos en KB (base64 ≈ 4/3 del binario)
+const tamanoFotosKB = (fotos: string[]) =>
+  Math.round(fotos.reduce((t, f) => t + f.length * 0.75, 0) / 1024)
+
+const MAX_FOTOS = 6
+const MAX_KB = 2048 // 2 MB por locación
+
 export default function Locaciones() {
   const p = useProyecto()
   const agregar = useStore(s => s.agregar)
@@ -67,6 +74,11 @@ export default function Locaciones() {
               <p className="text-xs text-zinc-400">{l.tipo} · {l.direccion || 'Sin dirección'}</p>
               {l.costo > 0 && <p className="text-xs text-zinc-300">💰 {dinero(l.costo)} {l.unidadCosto}</p>}
               {escenasDe(l.id) && <p className="text-xs text-copal-300/80">🎬 Escenas: {escenasDe(l.id)}</p>}
+              {(l.fotos.length > MAX_FOTOS || tamanoFotosKB(l.fotos) > MAX_KB) && (
+                <p className="text-[11px] text-yellow-400/90">
+                  ⚠️ {l.fotos.length} fotos · ~{tamanoFotosKB(l.fotos)} KB — considera quitar algunas para liberar espacio
+                </p>
+              )}
               <div className="flex gap-1.5 mt-auto pt-2">
                 <button className={btnSec + ' !px-2.5 !py-1 !text-xs'} onClick={() => { setEditando(l); setEsNueva(false) }}>
                   Editar
@@ -174,7 +186,19 @@ function EditorLocacion({
             📷 Agregar fotos
             <input type="file" accept="image/*" multiple className="hidden" onChange={e => agregarFotos(e.target.files)} />
           </label>
-          <p className="text-[11px] text-zinc-500 mt-1">Las fotos se comprimen y se guardan en el navegador; usa pocas por locación.</p>
+          {b.fotos.length > 0 && (() => {
+            const kb = tamanoFotosKB(b.fotos)
+            const exceso = b.fotos.length > MAX_FOTOS || kb > MAX_KB
+            return (
+              <p className={`text-[11px] mt-1 ${exceso ? 'text-yellow-400' : 'text-zinc-500'}`}>
+                {exceso ? '⚠️' : '💾'} {b.fotos.length} foto{b.fotos.length !== 1 ? 's' : ''} · ~{kb} KB almacenados
+                {exceso && ' — tienes muchas fotos; borra algunas para no saturar el navegador'}
+              </p>
+            )
+          })()}
+          {b.fotos.length === 0 && (
+            <p className="text-[11px] text-zinc-500 mt-1">Las fotos se comprimen y se guardan en el navegador; usa pocas por locación.</p>
+          )}
         </Campo>
       </div>
       <div className="flex justify-end gap-2 mt-4">
