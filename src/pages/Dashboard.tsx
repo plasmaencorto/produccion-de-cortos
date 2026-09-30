@@ -183,14 +183,35 @@ export default function Dashboard() {
               <p className="text-lg font-bold text-zinc-100">{dinero(tot.estimado)}</p>
             </div>
             <div>
-              <p className="text-xs text-zinc-400">Gastado</p>
+              <p className="text-xs text-zinc-400">Ejercido</p>
               <p className="text-lg font-bold text-zinc-100">{dinero(tot.real)}</p>
             </div>
             <div>
-              <p className="text-xs text-zinc-400">Diferencia</p>
+              <p className="text-xs text-zinc-400">Disponible</p>
               <p className={`text-lg font-bold ${dif < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{dinero(dif)}</p>
             </div>
           </div>
+          {/* Barra de progreso del presupuesto */}
+          {tot.estimado > 0 && (() => {
+            const pctPresupuesto = Math.min(Math.round((tot.real / tot.estimado) * 100), 100)
+            const excede = tot.real > tot.estimado
+            const sem = semaforo(tot.estimado, tot.real)
+            const barColor = { verde: 'bg-emerald-500', amarillo: 'bg-yellow-500', rojo: 'bg-red-500' }[sem]
+            return (
+              <div className="mt-3">
+                <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${barColor}`}
+                    style={{ width: pctPresupuesto + '%' }}
+                  />
+                </div>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {pctPresupuesto}% ejercido
+                  {excede && <span className="text-red-400 ml-1">— presupuesto rebasado</span>}
+                </p>
+              </div>
+            )
+          })()}
           <Link to={`/p/${p.id}/presupuesto`} className="block text-xs text-copal-400 hover:underline mt-3">
             Ver presupuesto completo →
           </Link>
