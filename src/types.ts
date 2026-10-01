@@ -288,6 +288,17 @@ export interface Proyecto {
   danos: Dano[]
   postproduccion?: EtapaPost[]
   entregables?: Entregable[]
+  // Constancia del guion importado. Se guarda el resumen, no el texto completo:
+  // un guion entero llenaría el almacenamiento del navegador sin aportar nada,
+  // porque las escenas ya viven en el desglose.
+  guionImportado?: {
+    archivo: string // nombre del archivo, o "texto pegado"
+    titulo: string
+    fecha: string // ISO
+    escenas: number
+    personajes: number
+    locaciones: number
+  }
   callSheets: Record<string, CallSheet> // por id de día de rodaje
   reporteDiario: Record<string, ReporteDia | string> // string = formato viejo (solo notas)
 }

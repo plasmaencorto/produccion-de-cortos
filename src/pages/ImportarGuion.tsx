@@ -141,6 +141,16 @@ export default function ImportarGuion() {
         personas: nuevasPersonas,
         escenas: [...pr.escenas, ...nuevasEscenas],
         presupuesto: [...pr.presupuesto, ...nuevasLineas],
+        // Queda constancia en el proyecto: lo de esta pantalla se borra al salir,
+        // y sin esto parece que el guion nunca se importó
+        guionImportado: {
+          archivo: nombreArchivo || 'texto pegado',
+          titulo: resultado.titulo || '',
+          fecha: new Date().toISOString(),
+          escenas: nuevasEscenas.length,
+          personajes: resultado.personajes.length,
+          locaciones: resultado.locaciones.length,
+        },
       }
     })
     setImportado(true)
@@ -152,6 +162,33 @@ export default function ImportarGuion() {
         titulo="Importar Guion"
         subtitulo="Sube tu guion y la app crea solas las escenas, locaciones, personajes y partidas de presupuesto"
       />
+
+      {/* Constancia de lo ya importado: esta pantalla se vacía al salir de ella,
+          así que sin esto parece que el guion se perdió */}
+      {p.guionImportado && !resultado && !importado && (
+        <div className={tarjeta + ' mb-4 border-emerald-800 bg-emerald-500/5'}>
+          <h2 className="font-semibold text-emerald-300 mb-1">✅ Este proyecto ya tiene un guion importado</h2>
+          <p className="text-sm text-zinc-300">
+            {p.guionImportado.titulo && <><b className="text-copal-300">{p.guionImportado.titulo}</b> · </>}
+            <span className="text-zinc-400">{p.guionImportado.archivo}</span>
+          </p>
+          <p className="text-sm text-zinc-400 mt-1">
+            {p.guionImportado.escenas} escenas · {p.guionImportado.personajes} personajes ·{' '}
+            {p.guionImportado.locaciones} locaciones · importado el{' '}
+            {new Date(p.guionImportado.fecha).toLocaleDateString('es-MX', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            })}
+          </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Link className={btnSec} to={`/p/${p.id}/desglose`}>📋 Ver el desglose</Link>
+            <Link className={btnSec} to={`/p/${p.id}/personas`}>👥 Ver el elenco</Link>
+            <Link className={btnSec} to={`/p/${p.id}/locaciones`}>📍 Ver locaciones</Link>
+          </div>
+          <p className="text-xs text-zinc-500 mt-3">
+            Puedes importar otro guion aquí abajo: lo nuevo se agrega a lo que ya tienes, no lo reemplaza.
+          </p>
+        </div>
+      )}
 
       {/* Paso 1: subir o pegar */}
       <div className={tarjeta + ' mb-4'}>
