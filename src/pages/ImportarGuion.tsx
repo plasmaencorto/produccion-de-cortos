@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useProyecto, useStore } from '../store'
 import { Badge, Encabezado, btn, btnSec, inp, tarjeta, td, th } from '../components/ui'
-import { uid } from '../utils'
+import { fechaBonita, hoyLocal, uid } from '../utils'
 import { analizarGuion, capitalizar, extraerTextoPDF, type ResultadoGuion } from '../guion'
 import { CTA_CASTING, CTA_LOCACIONES } from '../plantillaPresupuesto'
 import type { Escena, LineaPresupuesto, Locacion, Persona } from '../types'
@@ -11,8 +11,9 @@ import type { Escena, LineaPresupuesto, Locacion, Persona } from '../types'
 export default function ImportarGuion() {
   const p = useProyecto()
   const mutarActivo = useStore(s => s.mutarActivo)
-  const [texto, setTexto] = useState('')
-  const [nombreArchivo, setNombreArchivo] = useState('')
+  // Si el proyecto ya tiene un guion importado, se muestra de nuevo al volver a la página
+  const [texto, setTexto] = useState(p?.guion?.texto ?? '')
+  const [nombreArchivo, setNombreArchivo] = useState(p?.guion?.nombreArchivo ?? '')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [resultado, setResultado] = useState<ResultadoGuion | null>(null)
@@ -141,6 +142,7 @@ export default function ImportarGuion() {
         personas: nuevasPersonas,
         escenas: [...pr.escenas, ...nuevasEscenas],
         presupuesto: [...pr.presupuesto, ...nuevasLineas],
+        guion: { nombreArchivo, texto, importado: hoyLocal() },
       }
     })
     setImportado(true)
@@ -152,6 +154,19 @@ export default function ImportarGuion() {
         titulo="Importar Guion"
         subtitulo="Sube tu guion y la app crea solas las escenas, locaciones, personajes y partidas de presupuesto"
       />
+
+      {p.guion && !resultado && (
+        <div className={tarjeta + ' mb-4 border-emerald-700 bg-emerald-500/10'}>
+          <p className="text-emerald-300 font-semibold">
+            📄 Guion importado: {p.guion.nombreArchivo || 'texto pegado'} · {fechaBonita(p.guion.importado)}
+          </p>
+          <p className="text-xs text-zinc-400 mt-1">
+            Su texto está abajo. Las escenas ya están en el{' '}
+            <Link className="text-copal-300 underline" to={`/p/${p.id}/desglose`}>Desglose</Link>
+            {' '}— si lo vuelves a importar, las escenas se agregan otra vez.
+          </p>
+        </div>
+      )}
 
       {/* Paso 1: subir o pegar */}
       <div className={tarjeta + ' mb-4'}>

@@ -290,4 +290,11 @@ export interface Proyecto {
   entregables?: Entregable[]
   callSheets: Record<string, CallSheet> // por id de día de rodaje
   reporteDiario: Record<string, ReporteDia | string> // string = formato viejo (solo notas)
+  guion?: GuionImportado // el último guion importado, para volver a verlo
+}
+
+export interface GuionImportado {
+  nombreArchivo: string // vacío si se pegó el texto
+  texto: string
+  importado: string // fecha aaaa-mm-dd
 }
