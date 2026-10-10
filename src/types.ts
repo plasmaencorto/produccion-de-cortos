@@ -85,6 +85,8 @@ export interface Persona {
   rol: string // solo técnico: rol / departamento
   telefono: string
   correo: string
+  foto?: string // retrato comprimido: sirve para reconocerse en set, y va en el
+  // directorio que se reparte al equipo (ese documento nunca lleva pagos)
   tarifa: number
   unidadTarifa: string
   contrato: EstadoContrato

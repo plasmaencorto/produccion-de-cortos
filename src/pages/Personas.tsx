@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useProyecto, useStore } from '../store'
 import { Badge, Campo, Encabezado, Modal, Vacio, btn, btnSec, inp, td, th } from '../components/ui'
-import { dinero, num, uid } from '../utils'
+import { archivoAImagen, dinero, num, uid } from '../utils'
 import { colorDepartamento, conTransparencia } from '../departamentos'
 import type { EstadoContrato, Persona, Proyecto, TipoPersona } from '../types'
 
@@ -192,6 +192,42 @@ function EditorPersona({
             <input className={inp} value={b.rol} onChange={e => set({ rol: e.target.value })} placeholder="Director de fotografía, sonidista, gaffer…" />
           </Campo>
         )}
+        {/* Retrato: para reconocerse en set y para el directorio que se reparte.
+            Se comprime chico porque en la hoja sale del tamaño de una credencial. */}
+        <Campo etiqueta="Foto">
+          <div className="flex items-center gap-3">
+            {b.foto ? (
+              <img src={b.foto} alt={b.nombre} className="w-16 h-16 rounded-lg object-cover border border-zinc-700" />
+            ) : (
+              <div className="w-16 h-16 rounded-lg border border-dashed border-zinc-700 grid place-items-center text-2xl text-zinc-600">
+                👤
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+              <label className={btnSec + ' !py-1 !text-xs cursor-pointer'}>
+                {b.foto ? 'Cambiar foto' : 'Subir foto'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async e => {
+                    const f = e.target.files?.[0]
+                    if (f) set({ foto: await archivoAImagen(f, 700) })
+                  }}
+                />
+              </label>
+              {b.foto && (
+                <button
+                  onClick={() => set({ foto: undefined })}
+                  className="text-[11px] text-zinc-500 hover:text-red-400 cursor-pointer text-left"
+                >
+                  Quitar
+                </button>
+              )}
+            </div>
+          </div>
+        </Campo>
+
         <Campo etiqueta="Teléfono">
           <input className={inp} value={b.telefono} onChange={e => set({ telefono: e.target.value })} />
         </Campo>

@@ -166,6 +166,25 @@ body {
   .hoja-carta .space-y-3 > * + * {
     margin-top: 3px !important;
   }
+  /* Directorio del crew: 4 por renglón en carta (la rejilla responsiva se guía
+     por el ancho de pantalla, no por el de la hoja), ninguna tarjeta partida a
+     la mitad entre páginas, y el título de cada grupo pegado a su gente. */
+  .directorio-carta {
+    /* 4 por renglón: la foto queda de ~45 mm —más grande que una de pasaporte,
+       de sobra para reconocer a alguien— y así entran 12 por hoja. Con 3 la foto
+       crece a 60 mm pero la tercera fila ya no cabe y se desperdicia media hoja. */
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .directorio-carta > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .directorio-titulo {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
   /* que los colores y logos sí salgan impresos */
   * {
     -webkit-print-color-adjust: exact;

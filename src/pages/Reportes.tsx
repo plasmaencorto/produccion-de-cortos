@@ -25,13 +25,15 @@ import {
   totalLinea,
 } from '../helpers'
 import { PLANTILLA_PRESUPUESTO } from '../plantillaPresupuesto'
-import type { DiaRodaje, Escena, Proyecto, ReporteDia } from '../types'
+import { colorDepartamento } from '../departamentos'
+import type { DiaRodaje, Escena, Persona, Proyecto, ReporteDia } from '../types'
 
 const TIPOS = [
   { id: 'presupuesto', nombre: '💰 Presupuesto' },
   { id: 'desglose', nombre: '📋 Breakdown completo' },
   { id: 'diario', nombre: '🎬 Reporte diario de rodaje' },
   { id: 'contactos', nombre: '👥 Lista de contactos' },
+  { id: 'directorio', nombre: '🪪 Directorio con fotos' },
   { id: 'personal', nombre: '🍽 Plantilla de personal' },
   { id: 'plan', nombre: '📅 Plan de rodaje resumido' },
   { id: 'dood', nombre: '🗓 Day Out of Days (elenco)' },
@@ -151,6 +153,7 @@ export default function Reportes() {
         {tipo === 'desglose' && <ReporteDesglose p={p} />}
         {tipo === 'diario' && (dia ? <ReporteDiario p={p} dia={dia} /> : <p className="text-zinc-500">Primero crea días de rodaje.</p>)}
         {tipo === 'contactos' && <ReporteContactos p={p} />}
+        {tipo === 'directorio' && <ReporteDirectorio p={p} />}
         {tipo === 'personal' && <ReportePersonal p={p} />}
         {tipo === 'plan' && <ReportePlan p={p} />}
         {tipo === 'dood' && <ReporteDOOD p={p} />}
@@ -385,6 +388,68 @@ function ReporteContactos({ p }: { p: Proyecto }) {
         ))}
       </tbody>
     </table>
+  )
+}
+
+// --- Directorio con fotos ---
+// Es el documento que se reparte a TODO el equipo, así que a propósito solo lleva
+// quién es quién y qué hace: ni tarifas ni datos de contacto. Repartir los
+// teléfonos y correos de todos a todos es dato personal de cada quien, y para
+// eso hace falta su consentimiento; para localizar a alguien está la Lista de
+// contactos, que es de producción.
+function ReporteDirectorio({ p }: { p: Proyecto }) {
+  if (p.personas.length === 0) return <p className="text-zinc-500">No hay personas registradas.</p>
+
+  const grupos: [string, Persona[]][] = [
+    ['Equipo técnico', p.personas.filter(x => x.tipo === 'tecnico')],
+    ['Elenco', p.personas.filter(x => x.tipo === 'elenco')],
+  ]
+
+  return (
+    <div className="space-y-6">
+      {grupos.map(([titulo, gente]) =>
+        gente.length === 0 ? null : (
+          <section key={titulo}>
+            <h3 className="directorio-titulo text-sm font-black uppercase tracking-widest mb-3 border-b border-zinc-300 pb-1">
+              {titulo} <span className="font-normal normal-case tracking-normal">({gente.length})</span>
+            </h3>
+            {/* La foto va arriba y ocupa toda la tarjeta: el punto del documento es
+                reconocer caras en set, y una miniatura al lado del nombre no sirve
+                para eso. En carta cada foto sale de unos 55 mm, más que una
+                credencial. */}
+            <div className="directorio-carta grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {gente.map(x => {
+                const puesto = x.tipo === 'elenco' ? x.personaje : x.rol
+                const color = colorDepartamento(puesto || '')
+                return (
+                  <div
+                    key={x.id}
+                    className="border border-zinc-300 rounded-lg overflow-hidden break-inside-avoid"
+                    style={{ borderTopWidth: 4, borderTopColor: color }}
+                  >
+                    {x.foto ? (
+                      <img src={x.foto} alt={x.nombre} className="w-full aspect-square object-cover" />
+                    ) : (
+                      <div className="w-full aspect-square bg-zinc-200 grid place-items-center text-5xl text-zinc-400">
+                        👤
+                      </div>
+                    )}
+                    <div className="px-2.5 py-2">
+                      <p className="font-bold text-sm leading-tight">{x.nombre || '—'}</p>
+                      {puesto && (
+                        <p className="text-xs font-semibold mt-0.5" style={{ color }}>
+                          {puesto}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        ),
+      )}
+    </div>
   )
 }
 
