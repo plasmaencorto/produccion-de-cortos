@@ -413,6 +413,7 @@ function ReporteDirectorio({ p }: { p: Proyecto }) {
   const grupos: [string, Persona[]][] = [
     ['Equipo técnico', visibles.filter(x => x.tipo === 'tecnico')],
     ['Elenco', visibles.filter(x => x.tipo === 'elenco')],
+    ['Servicios', visibles.filter(x => x.tipo === 'proveedor')],
   ]
 
   return (

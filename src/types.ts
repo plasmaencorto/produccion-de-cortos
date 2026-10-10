@@ -72,7 +72,11 @@ export interface DiaRodaje {
   notas: string
 }
 
-export type TipoPersona = 'elenco' | 'tecnico'
+// 'proveedor' es para empresas y servicios contratados —catering, transporte,
+// renta de equipo—: no son del equipo, pero el crew necesita saber quiénes son
+// y reconocerlos en set. En su ficha el nombre es el de la empresa y la foto
+// puede ser su logotipo o el retrato de quien la representa.
+export type TipoPersona = 'elenco' | 'tecnico' | 'proveedor'
 export type EstadoContrato = 'Sin confirmar' | 'Confirmado' | 'Firmado'
 
 // Persona del proyecto: elenco o equipo técnico

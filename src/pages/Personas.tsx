@@ -54,13 +54,13 @@ export default function Personas() {
     <>
       <Encabezado titulo="Elenco y Equipo Técnico" subtitulo="Directorio de personas del proyecto">
         <button className={btn} onClick={() => { setEditando(personaVacia(tab)); setEsNueva(true) }}>
-          + Agregar {tab === 'elenco' ? 'actor/actriz' : 'técnico'}
+          + Agregar {tab === 'elenco' ? 'actor/actriz' : tab === 'tecnico' ? 'técnico' : 'empresa o servicio'}
         </button>
       </Encabezado>
 
       {/* Pestañas */}
       <div className="flex gap-1 mb-4">
-        {(['elenco', 'tecnico'] as TipoPersona[]).map(t => (
+        {(['elenco', 'tecnico', 'proveedor'] as TipoPersona[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -68,7 +68,8 @@ export default function Personas() {
               tab === t ? 'text-copal-300 border-copal-400 bg-zinc-900' : 'text-zinc-400 border-transparent hover:text-zinc-200'
             }`}
           >
-            {t === 'elenco' ? '🎭 Elenco' : '🎥 Equipo Técnico'} ({p.personas.filter(x => x.tipo === t).length})
+            {t === 'elenco' ? '🎭 Elenco' : t === 'tecnico' ? '🎥 Equipo Técnico' : '🚚 Servicios'} (
+            {p.personas.filter(x => x.tipo === t).length})
           </button>
         ))}
       </div>
@@ -163,17 +164,26 @@ function EditorPersona({
   const [b, setB] = useState<Persona>(inicial)
   const set = (patch: Partial<Persona>) => setB(x => ({ ...x, ...patch }))
   const esElenco = b.tipo === 'elenco'
+  const esProveedor = b.tipo === 'proveedor'
   const escenas = p.escenas.filter(e => e.personajeIds.includes(b.id)).map(e => e.numero).join(', ')
   // Partidas del presupuesto amarradas a esta persona: la tarifa es una sola cifra
   const partidas = p.presupuesto.filter(l => l.personaId === b.id)
 
   return (
     <Modal
-      titulo={esNueva ? (esElenco ? 'Nuevo actor / actriz' : 'Nuevo técnico') : `Editar: ${b.nombre}`}
+      titulo={
+        esNueva
+          ? esElenco
+            ? 'Nuevo actor / actriz'
+            : esProveedor
+              ? 'Nueva empresa o servicio'
+              : 'Nuevo técnico'
+          : `Editar: ${b.nombre}`
+      }
       onCerrar={onCerrar}
     >
       <div className="grid gap-3 md:grid-cols-2">
-        <Campo etiqueta="Nombre completo">
+        <Campo etiqueta={esProveedor ? 'Nombre de la empresa' : 'Nombre completo'}>
           <input className={inp} value={b.nombre} onChange={e => set({ nombre: e.target.value })} />
         </Campo>
         {esElenco ? (
@@ -188,13 +198,20 @@ function EditorPersona({
             </Campo>
           </>
         ) : (
-          <Campo etiqueta="Rol / Departamento">
-            <input className={inp} value={b.rol} onChange={e => set({ rol: e.target.value })} placeholder="Director de fotografía, sonidista, gaffer…" />
+          <Campo etiqueta={esProveedor ? 'Servicio que presta' : 'Rol / Departamento'}>
+            <input
+              className={inp}
+              value={b.rol}
+              onChange={e => set({ rol: e.target.value })}
+              placeholder={
+                esProveedor ? 'Catering, transporte, renta de equipo…' : 'Director de fotografía, sonidista, gaffer…'
+              }
+            />
           </Campo>
         )}
         {/* Retrato: para reconocerse en set y para el directorio que se reparte.
             Se comprime chico porque en la hoja sale del tamaño de una credencial. */}
-        <Campo etiqueta="Foto">
+        <Campo etiqueta={esProveedor ? 'Logotipo o foto de quien atiende' : 'Foto'}>
           <div className="flex items-center gap-3">
             {b.foto ? (
               <img src={b.foto} alt={b.nombre} className="w-16 h-16 rounded-lg object-cover border border-zinc-700" />

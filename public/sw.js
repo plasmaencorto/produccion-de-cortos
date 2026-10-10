@@ -4,7 +4,7 @@
 // navegador la primera vez que se abre, para que después arranque sin conexión.
 // Los proyectos nunca pasan por aquí: viven en localStorage, en el equipo.
 
-const CACHE = 'cortos-v5'
+const CACHE = 'cortos-v6'
 
 self.addEventListener('install', e => {
   // Tomar el control sin esperar a que se cierren las pestañas viejas
