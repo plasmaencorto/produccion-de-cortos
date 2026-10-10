@@ -3,8 +3,12 @@ node_modules
 dist
 dist-web
 
-# El archivo para abrir con doble clic se genera con: npm run build
+# El archivo para abrir con doble clic se genera con: npm run build.
+# Vanessa se pasó al sitio el 2026-10-10; el suyo quedó renombrado a "VIEJO - no
+# usar" para que no lo abra por inercia, porque guarda aparte del sitio y lo que
+# capture ahí no aparece allá.
 Produccion de Cortos.html
+VIEJO - no usar*.html
 
 # Lanzador viejo que ya no sirve (macOS 26)
 lanzador-viejo-no-funciona.app
