@@ -1,7 +1,8 @@
 // ===== Estado global con Zustand + guardado automático en localStorage =====
 import { useRef, type FocusEvent } from 'react'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { almacenamientoVigilado } from './guardado'
 import type {
   CallSheet,
   Dano,
@@ -380,6 +381,8 @@ export const useStore = create<Store>()(
     {
       name: 'produccion-cortos',
       version: 2,
+      // Almacenamiento que avisa si el guardado falla, en vez de fallar callado
+      storage: createJSONStorage(() => almacenamientoVigilado),
       // No guardar la papelera en localStorage — es solo temporal en memoria
       partialize: ({ papelera: _p, ...rest }: Store) => rest,
       // Al cargar datos guardados con una versión anterior, se completan los

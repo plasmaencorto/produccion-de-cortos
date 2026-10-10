@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useParams } from 'react-router-dom'
 import { useStore } from '../store'
+import { haceCuantoCorto, useGuardado } from '../guardado'
 import Buscador from './Buscador'
 import { descargarRespaldo, haceCuanto, necesitaRespaldo } from '../respaldo'
 
@@ -31,6 +32,13 @@ export default function Layout() {
   const ultimoRespaldo = useStore(s => (id ? s.respaldos[id] : undefined))
   const pospuesto = useStore(s => (id ? s.pospuestos[id] : undefined))
   const posponerRespaldo = useStore(s => s.posponerRespaldo)
+  const guardado = useGuardado()
+  // Sin esto, "hace un momento" se queda congelado al dejar de escribir y miente
+  const [, tic] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => tic(n => n + 1), 15000)
+    return () => clearInterval(t)
+  }, [])
   const papelera = useStore(s => s.papelera)
   const restaurar = useStore(s => s.restaurar)
   const timerUndo = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -119,7 +127,14 @@ export default function Layout() {
           </label>
           {abierto && (
             <>
-              <p className="text-[11px] text-zinc-500">💾 Guardado automático activo</p>
+              {/* Evidencia, no promesa: antes decía "activo" aunque estuviera roto */}
+              {guardado.estado === 'error' ? (
+                <p className="text-[11px] text-red-300 font-semibold">⚠️ NO se está guardando</p>
+              ) : (
+                <p className="text-[11px] text-zinc-500">
+                  {guardado.ultimo ? `💾 Guardado ${haceCuantoCorto(guardado.ultimo)}` : '💾 Guardado automático'}
+                </p>
+              )}
               <button
                 onClick={() => descargarRespaldo(proyecto)}
                 className="text-[11px] text-zinc-400 hover:text-copal-300 cursor-pointer text-left"
@@ -131,6 +146,28 @@ export default function Layout() {
           )}
         </div>
       </aside>
+
+      {/* Alarma de guardado: ocupa la pantalla a propósito. Si esto falla y no se
+          entera, pierde el trabajo del día; un aviso discreto no sirve aquí. */}
+      {guardado.estado === 'error' && (
+        <div className="fixed inset-x-0 top-0 z-[60] bg-red-950 border-b-2 border-red-600 px-4 py-3 print:hidden">
+          <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1 min-w-56">
+              <p className="font-bold text-red-200 text-sm">Tus cambios NO se están guardando</p>
+              <p className="text-xs text-red-300/90">{guardado.motivo}</p>
+            </div>
+            {proyecto && (
+              <button
+                onClick={() => descargarRespaldo(proyecto)}
+                className="bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg px-4 py-2 cursor-pointer whitespace-nowrap"
+              >
+                ⬇ Descargar respaldo ya
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast de deshacer eliminación */}
       {papelera && (
