@@ -16,6 +16,7 @@ import {
   personasTotal,
   semaforo,
   candidatosParaAmarrar,
+  tarifaDeTotal,
   subcategoriasDe,
   totalesCategoria,
   totalesProyecto,
@@ -391,8 +392,27 @@ function Categoria({
                               value={l.tarifa || ''}
                               onChange={e => actualizar('presupuesto', l.id, { tarifa: num(e.target.value) })} />
                           </td>
-                          <td className={td + ' text-right whitespace-nowrap ' + (incompleta ? 'text-amber-400' : 'text-zinc-300')}>
-                            {incompleta ? <span title="Escribe la cantidad para que se sume">falta cant.</span> : dinero(sub$)}
+                          {/* El subtotal se puede escribir: se negocia en totales
+                              ("le pago $4,000 por los 3 días"), no en tarifas diarias.
+                              La app saca la tarifa sola y así nadie divide a mano. */}
+                          <td className={td + ' w-28'}>
+                            <input
+                              type="number"
+                              className={inpMini + ' text-right' + (incompleta ? ' ring-1 ring-amber-500' : '')}
+                              title="Puedes escribir aquí el total acordado: la tarifa se calcula sola"
+                              placeholder={incompleta ? 'falta cant.' : '0'}
+                              value={sub$ || ''}
+                              onChange={e => {
+                                const total = num(e.target.value)
+                                // Sin cantidad no hay entre qué dividir: se asume 1
+                                const cant = l.cantidad || 1
+                                const por = l.por || 1
+                                actualizar('presupuesto', l.id, {
+                                  cantidad: cant,
+                                  tarifa: tarifaDeTotal(total, cant * por),
+                                })
+                              }}
+                            />
                           </td>
                           <td className={td + ' whitespace-nowrap'} title="¿Esta línea causa IVA (16%)?">
                             <label className="flex items-center gap-1 cursor-pointer text-xs text-zinc-400">

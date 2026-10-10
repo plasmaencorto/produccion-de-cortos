@@ -22,8 +22,22 @@ export const escenasEnVariosDias = (p: Proyecto) =>
 
 // ---- Presupuesto: cantidad × multiplicador × tarifa = subtotal, + IVA 16% ----
 export const IVA = 0.16
-export const estimadoLinea = (l: LineaPresupuesto) => (l.cantidad || 0) * (l.por ?? 1) * (l.tarifa || 0)
-export const ivaLinea = (l: LineaPresupuesto) => (l.iva ? estimadoLinea(l) * IVA : 0)
+
+// El dinero se redondea a centavos en cada línea, porque no existen fracciones
+// de centavo. Sin esto, una tarifa sacada de dividir (un pago de $1,000 entre 3
+// días = 333.333) arrastraba milésimas y un presupuesto de $76,000 se imprimía
+// como $75,999.99.
+export const centavos = (n: number) => Math.round(n * 100) / 100
+
+// Tarifa deducida de un total: se guardan 4 decimales, no 2. Con 2, un pago de
+// $4,000 entre 3 días daría 1333.33 y al multiplicar volvería a dar $3,999.99;
+// con 1333.3333 el total vuelve a cuadrar exacto al redondear a centavos.
+export const tarifaDeTotal = (total: number, divisor: number) =>
+  divisor ? Math.round((total / divisor) * 10000) / 10000 : 0
+
+export const estimadoLinea = (l: LineaPresupuesto) =>
+  centavos((l.cantidad || 0) * (l.por ?? 1) * (l.tarifa || 0))
+export const ivaLinea = (l: LineaPresupuesto) => (l.iva ? centavos(estimadoLinea(l) * IVA) : 0)
 export const totalLinea = (l: LineaPresupuesto) => estimadoLinea(l) + ivaLinea(l)
 
 export function totalesCategoria(p: Proyecto, categoria: string) {
