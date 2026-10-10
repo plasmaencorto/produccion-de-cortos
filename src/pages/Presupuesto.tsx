@@ -33,6 +33,7 @@ export default function Presupuesto() {
   const [compacto, setCompacto] = useState(false)
   if (!p) return null
 
+  const incompletas = p.presupuesto.filter(l => (l.tarifa || 0) > 0 && !(l.cantidad || 0))
   const porAmarrar = candidatosParaAmarrar(p)
   // Amarra todas de una vez y cada partida adopta la tarifa de su persona,
   // que es la que la usuaria negoció y la que vale
@@ -152,6 +153,25 @@ export default function Presupuesto() {
         👥 Personal contemplado en el presupuesto: <b className="text-zinc-300">{personasTotal(p)} personas</b>. Ajusta la
         columna 👤 en las cuentas de personal (1000–1600); ese número alimenta el catering, los radios y el transporte.
       </p>
+
+      {/* Partidas con precio pero sin cantidad: no suman, y el renglón solo
+          muestra $0. Aquí se juntan todas para no buscarlas cuenta por cuenta. */}
+      {incompletas.length > 0 && (
+        <div className={tarjeta + ' mb-4 border-amber-700 bg-amber-500/5'}>
+          <p className="text-sm text-zinc-200">
+            ⚠️ <b className="text-amber-300">{incompletas.length}</b>{' '}
+            {incompletas.length === 1 ? 'partida tiene tarifa pero no cantidad' : 'partidas tienen tarifa pero no cantidad'},
+            así que <b>no se están sumando</b>.
+          </p>
+          <p className="text-xs text-zinc-400 mt-1">
+            {incompletas.slice(0, 4).map(l => `${l.descripcion || '(sin descripción)'} · ${dinero(l.tarifa)}`).join(' · ')}
+            {incompletas.length > 4 && ` · y ${incompletas.length - 4} más`}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-2">
+            El subtotal sale de multiplicar Cant. por la columna × y por la Tarifa. Escribe cuántos días —o pon 1 si es pago único— en la columna Cant.
+          </p>
+        </div>
+      )}
 
       {/* Las partidas de antes del vínculo no se amarran solas. Esto propone las
           que encajan por nombre, sin tocar las dudosas. */}
@@ -313,6 +333,7 @@ function Categoria({
                     </tr>
                     {lineas.map(l => {
                       const sub$ = estimadoLinea(l)
+                      const incompleta = (l.tarifa || 0) > 0 && !(l.cantidad || 0)
                       const iva$ = ivaLinea(l)
                       const total$ = sub$ + iva$
                       const d = total$ - (l.real || 0)
@@ -322,8 +343,14 @@ function Categoria({
                             <input className={inpMini} value={l.descripcion} placeholder="Descripción del gasto"
                               onChange={e => actualizar('presupuesto', l.id, { descripcion: e.target.value })} />
                           </td>
+                          {/* Con tarifa pero sin cantidad el subtotal es 0 sin decir por qué:
+                              se escribe el precio, sale $0 y parece que la app no suma. */}
                           <td className={td + ' w-14'}>
-                            <input type="number" className={inpMini} value={l.cantidad || ''}
+                            <input
+                              type="number"
+                              className={inpMini + (incompleta ? ' ring-1 ring-amber-500' : '')}
+                              title={incompleta ? 'Falta la cantidad: por eso el subtotal es $0' : undefined}
+                              value={l.cantidad || ''}
                               onChange={e => actualizar('presupuesto', l.id, { cantidad: num(e.target.value) })} />
                           </td>
                           <td className={td + ' w-20'}>
@@ -364,7 +391,9 @@ function Categoria({
                               value={l.tarifa || ''}
                               onChange={e => actualizar('presupuesto', l.id, { tarifa: num(e.target.value) })} />
                           </td>
-                          <td className={td + ' text-right whitespace-nowrap text-zinc-300'}>{dinero(sub$)}</td>
+                          <td className={td + ' text-right whitespace-nowrap ' + (incompleta ? 'text-amber-400' : 'text-zinc-300')}>
+                            {incompleta ? <span title="Escribe la cantidad para que se sume">falta cant.</span> : dinero(sub$)}
+                          </td>
                           <td className={td + ' whitespace-nowrap'} title="¿Esta línea causa IVA (16%)?">
                             <label className="flex items-center gap-1 cursor-pointer text-xs text-zinc-400">
                               <input type="checkbox" className="accent-copal-500" checked={!!l.iva}
