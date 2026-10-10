@@ -190,6 +190,23 @@ export default function ImportarGuion() {
         </div>
       )}
 
+      {/* Proyectos de antes de que se guardara la constancia: no hay archivo ni
+          fecha que mostrar, pero sí se puede decir lo que es cierto */}
+      {!p.guionImportado && p.escenas.length > 0 && !resultado && !importado && (
+        <div className={tarjeta + ' mb-4 border-zinc-700'}>
+          <h2 className="font-semibold text-zinc-200 mb-1">📋 Este proyecto ya tiene {p.escenas.length} {p.escenas.length === 1 ? 'escena' : 'escenas'}</h2>
+          <p className="text-sm text-zinc-400">
+            {p.escenas.length === 1 ? 'Está' : 'Están'} en el desglose. (Se importaron antes de que la app guardara el detalle del archivo, por eso no
+            aparece aquí el nombre ni la fecha.)
+          </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Link className={btnSec} to={`/p/${p.id}/desglose`}>📋 Ver el desglose</Link>
+            <Link className={btnSec} to={`/p/${p.id}/personas`}>👥 Ver el elenco</Link>
+            <Link className={btnSec} to={`/p/${p.id}/locaciones`}>📍 Ver locaciones</Link>
+          </div>
+        </div>
+      )}
+
       {/* Paso 1: subir o pegar */}
       <div className={tarjeta + ' mb-4'}>
         <h2 className="font-semibold text-zinc-200 mb-2">1️⃣ Sube tu guion (PDF o texto)</h2>
