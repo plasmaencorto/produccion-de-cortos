@@ -50,6 +50,9 @@ export interface LineaPresupuesto {
   unidad: string
   por: number // multiplicador (p. ej. 2 personas × 5 días)
   personas?: number // cuánta gente cubre esta línea (para catering, radios, transporte)
+  personaId?: string // persona del elenco/equipo a la que corresponde esta partida.
+  // Cuando está puesta, la tarifa es una sola cifra compartida: cambiarla aquí o en
+  // Elenco y Equipo actualiza las dos. Las partidas que cubren a varias personas no se amarran.
   tarifa: number // costo unitario estimado
   iva: boolean // si la línea causa IVA (16%)
   real: number // total real gastado

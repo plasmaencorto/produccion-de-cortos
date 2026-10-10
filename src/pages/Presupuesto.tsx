@@ -236,7 +236,7 @@ function Categoria({
               <tr>
                 {[
                   'Descripción', 'Cant.', 'Unidad', '×',
-                  ...(esPersonal ? ['👤 Personas'] : []),
+                  ...(esPersonal ? ['👤 Personas', '🔗 Quién'] : []),
                   'Tarifa', 'Subtotal', 'IVA', 'Total', 'Real', 'Diferencia',
                   ...(!compacto ? ['Proveedor', 'Notas'] : []),
                   '',
@@ -251,7 +251,7 @@ function Categoria({
                 return (
                   <Fragment key={sub}>
                     <tr className="bg-zinc-800/40">
-                      <td colSpan={compacto ? (esPersonal ? 11 : 10) : (esPersonal ? 13 : 12)} className="px-2 py-1 text-xs font-semibold text-copal-300/90">{sub}</td>
+                      <td colSpan={compacto ? (esPersonal ? 12 : 10) : (esPersonal ? 14 : 12)} className="px-2 py-1 text-xs font-semibold text-copal-300/90">{sub}</td>
                       <td className="px-2 py-1 text-right">
                         <button onClick={() => onAgregar(categoria, sub)} className="text-copal-400 hover:text-copal-300 text-xs whitespace-nowrap">
                           + línea
@@ -287,8 +287,28 @@ function Categoria({
                                 onChange={e => actualizar('presupuesto', l.id, { personas: num(e.target.value) })} />
                             </td>
                           )}
+                          {esPersonal && (
+                            <td className={td + ' w-32'} title="Amarra esta partida a una persona: la tarifa queda compartida con Elenco y Equipo">
+                              <select
+                                className={inpMini}
+                                value={l.personaId ?? ''}
+                                onChange={e => actualizar('presupuesto', l.id, { personaId: e.target.value })}
+                              >
+                                <option value="">— sin amarrar —</option>
+                                {p.personas.map(x => (
+                                  <option key={x.id} value={x.id}>
+                                    {x.nombre || '(sin nombre)'}{x.rol || x.personaje ? ` · ${x.rol || x.personaje}` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                          )}
                           <td className={td + ' w-24'}>
-                            <input type="number" className={inpMini} value={l.tarifa || ''}
+                            <input
+                              type="number"
+                              className={inpMini + (l.personaId ? ' ring-1 ring-turquesa-600/40' : '')}
+                              title={l.personaId ? 'Tarifa compartida: al cambiarla aquí también cambia en Elenco y Equipo' : undefined}
+                              value={l.tarifa || ''}
                               onChange={e => actualizar('presupuesto', l.id, { tarifa: num(e.target.value) })} />
                           </td>
                           <td className={td + ' text-right whitespace-nowrap text-zinc-300'}>{dinero(sub$)}</td>

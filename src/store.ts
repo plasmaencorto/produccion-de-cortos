@@ -107,6 +107,32 @@ const CAMPOS_NOMBRE: Partial<Record<keyof Colecciones, string[]>> = {
   locaciones: ['contactoNombre'],
 }
 
+// ---- Tarifa compartida entre el presupuesto y la lista de gente ----
+// Una partida amarrada a una persona (personaId) y esa persona guardan la MISMA
+// cifra. Antes cada lado tenía la suya y podían contradecirse sin aviso: se podía
+// imprimir un presupuesto que no cuadraba con lo que decía la lista de crew.
+
+// La tarifa que cambió en una partida se copia a su persona.
+export function sincronizarTarifaDesdeLinea(p: Proyecto, lineaId: string, tarifa: number): Proyecto {
+  const linea = p.presupuesto.find(l => l.id === lineaId)
+  if (!linea?.personaId) return p
+  const persona = p.personas.find(x => x.id === linea.personaId)
+  if (!persona || persona.tarifa === tarifa) return p
+  return {
+    ...p,
+    personas: p.personas.map(x => (x.id === linea.personaId ? { ...x, tarifa } : x)),
+  }
+}
+
+// La tarifa que cambió en una persona se copia a las partidas amarradas a ella.
+export function sincronizarTarifaDesdePersona(p: Proyecto, personaId: string, tarifa: number): Proyecto {
+  if (!p.presupuesto.some(l => l.personaId === personaId && l.tarifa !== tarifa)) return p
+  return {
+    ...p,
+    presupuesto: p.presupuesto.map(l => (l.personaId === personaId ? { ...l, tarifa } : l)),
+  }
+}
+
 const mismoNombre = (a: string, b: string) =>
   a.trim().localeCompare(b.trim(), 'es', { sensitivity: 'base' }) === 0
 
@@ -278,6 +304,22 @@ export const useStore = create<Store>()(
               if (typeof antes === 'string' && typeof despues === 'string') {
                 nuevo = renombrarEnProyecto(nuevo, antes, despues)
               }
+            }
+            // La tarifa es una sola cifra entre la partida y su persona
+            const tarifa = (patch as Record<string, unknown>).tarifa
+            if (typeof tarifa === 'number') {
+              if (col === 'presupuesto') nuevo = sincronizarTarifaDesdeLinea(nuevo, id, tarifa)
+              if (col === 'personas') nuevo = sincronizarTarifaDesdePersona(nuevo, id, tarifa)
+            }
+            // Amarrar una partida a una persona adopta de inmediato la tarifa de ella
+            const personaId = (patch as Record<string, unknown>).personaId
+            if (col === 'presupuesto' && typeof personaId === 'string' && personaId) {
+              const persona = nuevo.personas.find(x => x.id === personaId)
+              if (persona)
+                nuevo = {
+                  ...nuevo,
+                  presupuesto: nuevo.presupuesto.map(l => (l.id === id ? { ...l, tarifa: persona.tarifa || 0 } : l)),
+                }
             }
             return nuevo
           }),

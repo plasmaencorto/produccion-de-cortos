@@ -164,6 +164,8 @@ function EditorPersona({
   const set = (patch: Partial<Persona>) => setB(x => ({ ...x, ...patch }))
   const esElenco = b.tipo === 'elenco'
   const escenas = p.escenas.filter(e => e.personajeIds.includes(b.id)).map(e => e.numero).join(', ')
+  // Partidas del presupuesto amarradas a esta persona: la tarifa es una sola cifra
+  const partidas = p.presupuesto.filter(l => l.personaId === b.id)
 
   return (
     <Modal
@@ -197,7 +199,18 @@ function EditorPersona({
           <input className={inp} value={b.correo} onChange={e => set({ correo: e.target.value })} />
         </Campo>
         <Campo etiqueta="Tarifa / cachet">
-          <input type="number" className={inp} value={b.tarifa || ''} onChange={e => set({ tarifa: num(e.target.value) })} />
+          <input
+            type="number"
+            className={inp + (partidas.length ? ' ring-1 ring-turquesa-600/40' : '')}
+            value={b.tarifa || ''}
+            onChange={e => set({ tarifa: num(e.target.value) })}
+          />
+          {partidas.length > 0 && (
+            <p className="text-[11px] text-turquesa-400/90 mt-1">
+              🔗 Compartida con el presupuesto ({partidas.map(l => l.categoria.split(' · ')[0]).join(', ')}).
+              Al guardar, allá se actualiza sola.
+            </p>
+          )}
         </Campo>
         <Campo etiqueta="Unidad de la tarifa">
           <select className={inp} value={b.unidadTarifa} onChange={e => set({ unidadTarifa: e.target.value })}>
