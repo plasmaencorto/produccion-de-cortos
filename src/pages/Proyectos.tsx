@@ -1,9 +1,10 @@
 // ===== Pantalla inicial: Mis Proyectos =====
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useStore } from '../store'
+import { normalizarProyecto, useStore } from '../store'
 import { Badge, Greca, btn, btnSec, inp, tarjeta } from '../components/ui'
 import { descargarRespaldo, haceCuanto, necesitaRespaldo } from '../respaldo'
+import type { Proyecto } from '../types'
 // Los logos se importan para que queden dentro del archivo suelto
 // (el de doble clic) y no dependan de imágenes aparte
 import logoPlasma from '../assets/logo-plasma.png'
@@ -25,6 +26,9 @@ export default function Proyectos() {
   const respaldos = useStore(s => s.respaldos)
   const pospuestos = useStore(s => s.pospuestos)
   const [nombre, setNombre] = useState('')
+  // Importar no decía nada al funcionar: solo aparecía la tarjeta entre las demás,
+  // y quien venía de otro equipo se quedaba sin saber si su respaldo entró
+  const [recienImportado, setRecienImportado] = useState<Proyecto | null>(null)
   const nav = useNavigate()
   // ¿se está usando desde internet, o es el archivo abierto con doble clic?
   const enInternet = location.protocol !== 'file:'
@@ -45,6 +49,7 @@ export default function Proyectos() {
       const p = JSON.parse(await f.text())
       if (!p || typeof p.nombre !== 'string' || !Array.isArray(p.escenas)) throw new Error()
       importarProyecto(p)
+      setRecienImportado(normalizarProyecto(p))
     } catch {
       alert('El archivo no es un respaldo válido de proyecto')
     }
@@ -80,6 +85,35 @@ export default function Proyectos() {
           <input type="file" accept=".json" className="hidden" onChange={e => importar(e.target.files)} />
         </label>
       </div>
+
+      {/* Confirmación de lo importado: dice qué entró, con números, para poder
+          compararlo contra el equipo de donde salió */}
+      {recienImportado && (
+        <div className="max-w-2xl mx-auto mb-6 bg-emerald-500/10 border border-emerald-700/60 rounded-xl px-4 py-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-emerald-300 font-semibold mb-1">
+                ✅ Se importó «{recienImportado.nombre}»
+              </p>
+              <p className="text-sm text-zinc-300">
+                {recienImportado.escenas.length} escenas · {recienImportado.presupuesto.length} partidas de
+                presupuesto · {recienImportado.personas.length} personas · {recienImportado.locaciones.length}{' '}
+                locaciones
+              </p>
+              <p className="text-xs text-zinc-400 mt-1">
+                Compara estos números con los del equipo de donde lo sacaste. Si cuadran, llegó completo.
+              </p>
+            </div>
+            <button
+              onClick={() => setRecienImportado(null)}
+              className="text-zinc-500 hover:text-zinc-300 cursor-pointer text-lg leading-none"
+              title="Cerrar"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Cuando la app se usa por internet conviene aclarar dónde quedan los datos,
           porque cada quien los guarda en su propio navegador */}
