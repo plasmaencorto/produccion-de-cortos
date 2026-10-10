@@ -240,3 +240,29 @@ export function ejercidoPorCuenta(p: Proyecto, ordenCuentas: string[]) {
     })
     .filter(x => x.presupuestado || x.comprobado || x.comprometido)
 }
+
+// ---- Amarrar partidas con personas por nombre ----
+// Las partidas creadas antes del vínculo (o por el importador de guion) traen el
+// nombre dentro de la descripción: "Actor/Actriz: Nora", "Director de Fotografía".
+// Esto busca a quién corresponde cada una, sin inventar: solo cuando hay UNA sola
+// persona que encaja, para no amarrar a la equivocada.
+const sinAcentos = (t: string) =>
+  t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
+export function candidatosParaAmarrar(p: Proyecto) {
+  const libres = p.presupuesto.filter(l => !l.personaId && esCuentaDePersonal(l.categoria))
+  const pares: { lineaId: string; personaId: string; descripcion: string; nombre: string }[] = []
+  for (const l of libres) {
+    const texto = sinAcentos(l.descripcion)
+    if (!texto) continue
+    const encajan = p.personas.filter(x => {
+      // el nombre de la persona dentro de la descripción, o su rol/personaje igual
+      const n = sinAcentos(x.nombre)
+      const r = sinAcentos(x.rol || x.personaje || '')
+      return (n.length > 2 && texto.includes(n)) || (r.length > 2 && texto === r)
+    })
+    if (encajan.length === 1)
+      pares.push({ lineaId: l.id, personaId: encajan[0].id, descripcion: l.descripcion, nombre: encajan[0].nombre })
+  }
+  return pares
+}

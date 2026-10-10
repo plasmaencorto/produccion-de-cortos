@@ -15,6 +15,7 @@ import {
   personasLinea,
   personasTotal,
   semaforo,
+  candidatosParaAmarrar,
   subcategoriasDe,
   totalesCategoria,
   totalesProyecto,
@@ -27,9 +28,24 @@ import type { Proyecto } from '../types'
 export default function Presupuesto() {
   const p = useProyecto()
   const agregar = useStore(s => s.agregar)
+  const mutarActivo = useStore(s => s.mutarActivo)
   const [filtro, setFiltro] = useState('')
   const [compacto, setCompacto] = useState(false)
   if (!p) return null
+
+  const porAmarrar = candidatosParaAmarrar(p)
+  // Amarra todas de una vez y cada partida adopta la tarifa de su persona,
+  // que es la que la usuaria negoció y la que vale
+  const amarrarTodas = () =>
+    mutarActivo(pr => ({
+      ...pr,
+      presupuesto: pr.presupuesto.map(l => {
+        const par = porAmarrar.find(x => x.lineaId === l.id)
+        if (!par) return l
+        const persona = pr.personas.find(x => x.id === par.personaId)
+        return { ...l, personaId: par.personaId, tarifa: persona?.tarifa || l.tarifa }
+      }),
+    }))
 
   const tot = totalesProyecto(p)
   const dif = tot.estimado - tot.real
@@ -137,6 +153,28 @@ export default function Presupuesto() {
         columna 👤 en las cuentas de personal (1000–1600); ese número alimenta el catering, los radios y el transporte.
       </p>
 
+      {/* Las partidas de antes del vínculo no se amarran solas. Esto propone las
+          que encajan por nombre, sin tocar las dudosas. */}
+      {porAmarrar.length > 0 && (
+        <div className={tarjeta + ' mb-4 border-turquesa-800 bg-turquesa-500/5'}>
+          <p className="text-sm text-zinc-200">
+            🔗 Hay <b className="text-turquesa-300">{porAmarrar.length}</b>{' '}
+            {porAmarrar.length === 1 ? 'partida que parece ser' : 'partidas que parecen ser'} de alguien de tu equipo.
+          </p>
+          <p className="text-xs text-zinc-400 mt-1">
+            {porAmarrar.slice(0, 4).map(x => `${x.descripcion} → ${x.nombre}`).join(' · ')}
+            {porAmarrar.length > 4 && ` · y ${porAmarrar.length - 4} más`}
+          </p>
+          <button className={btnSec + ' mt-3'} onClick={amarrarTodas}>
+            🔗 Amarrar {porAmarrar.length === 1 ? 'esta partida' : 'estas partidas'} y compartir tarifa
+          </button>
+          <p className="text-[11px] text-zinc-500 mt-2">
+            Cada partida tomará la tarifa que tenga esa persona en Elenco y Equipo. Puedes deshacerlo partida por
+            partida con el selector 🔗 Quién.
+          </p>
+        </div>
+      )}
+
       {filtro && (
         <p className="text-xs text-zinc-500 mb-3">
           Mostrando cuentas que coinciden con «<span className="text-copal-300">{filtro}</span>»
@@ -145,8 +183,19 @@ export default function Presupuesto() {
         </p>
       )}
 
+      {/* A las subcategorías de la plantilla se suman las que ya tenga el proyecto:
+          una partida con subcategoría desconocida sumaba al total pero no se
+          dibujaba, y no había forma de verla, corregirla ni borrarla. */}
       {PLANTILLA_PRESUPUESTO.filter(c => coincide(c.categoria)).map(c => (
-        <Categoria key={c.categoria} p={p} categoria={c.categoria} subcategorias={c.subcategorias} onAgregar={agregarLinea} comprobado={comprobadoCategoria(p, c.categoria)} compacto={compacto} />
+        <Categoria
+          key={c.categoria}
+          p={p}
+          categoria={c.categoria}
+          subcategorias={[...new Set([...c.subcategorias, ...subcategoriasDe(p, c.categoria)])]}
+          onAgregar={agregarLinea}
+          comprobado={comprobadoCategoria(p, c.categoria)}
+          compacto={compacto}
+        />
       ))}
 
       {extras.length > 0 && (
@@ -247,7 +296,11 @@ function Categoria({
             </thead>
             <tbody>
               {subcategorias.map(sub => {
-                const lineas = p.presupuesto.filter(l => l.categoria === categoria && l.subcategoria === sub)
+                // Sin subcategoría cuentan como "General", igual que en subcategoriasDe:
+                // si no, tampoco se dibujaban aunque sí sumaran
+                const lineas = p.presupuesto.filter(
+                  l => l.categoria === categoria && (l.subcategoria || 'General') === sub,
+                )
                 return (
                   <Fragment key={sub}>
                     <tr className="bg-zinc-800/40">
