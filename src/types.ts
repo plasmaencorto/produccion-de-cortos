@@ -304,6 +304,10 @@ export interface Proyecto {
     personajes: number
     locaciones: number
   }
+  // Gente que no sale en el directorio que se reparte al equipo. Se guarda en el
+  // proyecto y no en la pantalla, porque ese documento se imprime muchas veces
+  // durante una producción y nadie quiere volver a desmarcar lo mismo cada vez.
+  ocultosEnDirectorio?: string[]
   callSheets: Record<string, CallSheet> // por id de día de rodaje
   reporteDiario: Record<string, ReporteDia | string> // string = formato viejo (solo notas)
 }

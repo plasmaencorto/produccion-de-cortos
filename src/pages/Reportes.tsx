@@ -398,15 +398,68 @@ function ReporteContactos({ p }: { p: Proyecto }) {
 // eso hace falta su consentimiento; para localizar a alguien está la Lista de
 // contactos, que es de producción.
 function ReporteDirectorio({ p }: { p: Proyecto }) {
+  const actualizarActivo = useStore(s => s.actualizarActivo)
+  const [eligiendo, setEligiendo] = useState(false)
   if (p.personas.length === 0) return <p className="text-zinc-500">No hay personas registradas.</p>
 
+  const ocultos = p.ocultosEnDirectorio ?? []
+  const sale = (x: Persona) => !ocultos.includes(x.id)
+  const alternar = (id: string) =>
+    actualizarActivo({
+      ocultosEnDirectorio: ocultos.includes(id) ? ocultos.filter(o => o !== id) : [...ocultos, id],
+    })
+
+  const visibles = p.personas.filter(sale)
   const grupos: [string, Persona[]][] = [
-    ['Equipo técnico', p.personas.filter(x => x.tipo === 'tecnico')],
-    ['Elenco', p.personas.filter(x => x.tipo === 'elenco')],
+    ['Equipo técnico', visibles.filter(x => x.tipo === 'tecnico')],
+    ['Elenco', visibles.filter(x => x.tipo === 'elenco')],
   ]
 
   return (
     <div className="space-y-6">
+      {/* Quién sale. Es un filtro del documento, no un borrado: quien se
+          desmarca sigue en Elenco y Equipo con todos sus datos. */}
+      <div className="print:hidden border border-zinc-700 rounded-xl p-3 bg-zinc-900/60">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-zinc-300">
+            Salen <b className="text-copal-300">{visibles.length}</b> de {p.personas.length}
+            {ocultos.length > 0 && <span className="text-zinc-500"> · {ocultos.length} fuera del documento</span>}
+          </p>
+          <div className="flex gap-2">
+            {ocultos.length > 0 && (
+              <button
+                className={btnSec + ' !py-1 !text-xs'}
+                onClick={() => actualizarActivo({ ocultosEnDirectorio: [] })}
+              >
+                Que salgan todos
+              </button>
+            )}
+            <button className={btnSec + ' !py-1 !text-xs'} onClick={() => setEligiendo(v => !v)}>
+              {eligiendo ? 'Listo' : '✓ Elegir quién sale'}
+            </button>
+          </div>
+        </div>
+
+        {eligiendo && (
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 border-t border-zinc-800 pt-3">
+            {p.personas.map(x => (
+              <label key={x.id} className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                <input
+                  type="checkbox"
+                  className="accent-copal-500 shrink-0"
+                  checked={sale(x)}
+                  onChange={() => alternar(x.id)}
+                />
+                <span className="truncate">
+                  {x.nombre || '(sin nombre)'}
+                  <span className="text-zinc-500"> · {(x.tipo === 'elenco' ? x.personaje : x.rol) || 'sin puesto'}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
       {grupos.map(([titulo, gente]) =>
         gente.length === 0 ? null : (
           <section key={titulo}>

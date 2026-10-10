@@ -48,7 +48,7 @@ const POR_NOMBRE: [RegExp, keyof typeof FAMILIAS][] = [
   [/arte|utiler[ií]a|vestuario|maquillaje|peinado|props/i, 'arte'],
   [/locaci[oó]n|locaciones|permiso/i, 'locaciones'],
   [/transporte|veh[ií]culo|gasolina|van|chofer/i, 'transporte'],
-  [/aliment|catering|comida|hospedaje|hotel/i, 'alimentacion'],
+  [/aliment|catering|comida|cocin|chef|cafet|hospedaje|hotel/i, 'alimentacion'],
   [/post|edici[oó]n|color|vfx|m[uú]sica|subt[ií]tul/i, 'post'],
   [/seguro|auditor[ií]a|contab|legal|administra/i, 'admin'],
   [/festival|distribuci[oó]n|prensa|publicidad/i, 'distribucion'],
